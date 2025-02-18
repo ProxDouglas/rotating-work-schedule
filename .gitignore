@@ -1,0 +1,46 @@
+# Ignore arquivos e pastas gerados pelo build
+bin/
+obj/
+
+# Arquivos de log
+*.log
+
+# Pastas do sistema de dependências do NuGet
+packages/
+*.nupkg
+
+# Arquivos de configuração do Visual Studio
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Arquivos de publicações
+publish/
+*.pubxml
+*.publishproj
+
+# Diretórios do sistema de gerenciamento de pacotes
+node_modules/
+npm-debug.log
+yarn-error.log
+.yarn-integrity
+
+# Arquivos de ambiente
+.env
+.env.*
+
+# Diretórios locais do Visual Studio Code
+.vscode/
+
+# Arquivos temporários
+*.swp
+
+# Diretórios de projeto
+project.lock.json
+project.fragment.lock.json
+.project
+
+# Arquivos de cobertura de teste
+coverage/

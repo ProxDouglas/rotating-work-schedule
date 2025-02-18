@@ -1,0 +1,6 @@
+@rotating_work_schedule_HostAddress = http://localhost:5197
+
+GET {{rotating_work_schedule_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
