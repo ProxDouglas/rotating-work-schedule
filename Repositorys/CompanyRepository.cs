@@ -9,32 +9,32 @@ namespace rotating_work_schedule.Repositorys
     {
         public async Task<IEnumerable<Company>> GetAllAsync()
         {
-            return await _context.Companies.ToListAsync();
+            return await _context.Company.ToListAsync();
         }
 
         public async Task<Company?> GetByIdAsync(int id)
         {
-            return await _context.Companies.FindAsync(id);
+            return await _context.Company.FindAsync(id);
         }
 
         public async Task AddAsync(Company company)
         {
-            _context.Companies.Add(company);
+            _context.Company.Add(company);
             await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Company company)
         {
-            _context.Companies.Update(company);
+            _context.Company.Update(company);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
+            var company = await _context.Company.FindAsync(id);
             if (company != null)
             {
-                _context.Companies.Remove(company);
+                _context.Company.Remove(company);
                 await _context.SaveChangesAsync();
             }
         }

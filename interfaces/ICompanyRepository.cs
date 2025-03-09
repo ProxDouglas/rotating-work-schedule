@@ -1,4 +1,3 @@
-using rotating_work_schedule.Interfaces;
 using rotating_work_schedule.Models;
 
 namespace YourNamespace.Repositories

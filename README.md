@@ -12,6 +12,8 @@ dotnet tool install --global dotnet-ef
 #### Migration
 
 ```
+dotnet ef migrations add NomeDaNovaMigration
+
 dotnet ef database update
 ```
 
