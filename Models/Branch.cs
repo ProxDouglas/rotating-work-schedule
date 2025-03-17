@@ -11,20 +11,20 @@ namespace rotating_work_schedule.Models
 
       [Required] // Campo obrigatório
       [StringLength(100)] // Tamanho máximo de 100 caracteres
-      public string Name { get; set; }
+      public required string Name { get; set; }
 
       [Required] // Campo obrigatório
       [StringLength(50)] // Tamanho máximo de 50 caracteres
-      public string Country { get; set; }
+      public required string Country { get; set; }
 
       [StringLength(50)] // Tamanho máximo de 50 caracteres
-      public string State { get; set; }
+      public string? State { get; set; }
 
       [StringLength(50)] // Tamanho máximo de 50 caracteres
-      public string City { get; set; }
+      public string? City { get; set; }
 
       // Relacionamento com Employee
-      public ICollection<Employee> Employees { get; set; }
+      public ICollection<Employee>? Employees { get; set; }
 
    }
 }

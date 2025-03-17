@@ -19,23 +19,22 @@ namespace rotating_work_schedule.Models
 
       [Required] // Campo obrigatório
       [StringLength(100)] // Tamanho máximo de 100 caracteres
-      public string Name { get; set; }
+      public required string Name { get; set; }
 
-      [Required] // Campo obrigatório
       [EmailAddress] // Valida o formato de e-mail
       [StringLength(100)] // Tamanho máximo de 100 caracteres
-      public string Email { get; set; }
+      public string? Email { get; set; }
 
       // Relacionamento com Branch
-      public Branch Branch { get; set; }
+      public Branch? Branch { get; set; }
 
       // Relacionamento com JobPosition
-      public JobPosition JobPosition { get; set; }
+      public JobPosition? JobPosition { get; set; }
 
       // Relacionamento com Unavailability
-      public ICollection<Unavailability> Unavailabilities { get; set; }
+      public ICollection<Unavailability>? Unavailabilities { get; set; }
 
       // Relacionamento com WorkSchedule
-      public ICollection<WorkSchedule> WorkSchedules { get; set; }
+      public ICollection<WorkSchedule>? WorkSchedules { get; set; }
    }
 }

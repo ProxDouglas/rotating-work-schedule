@@ -16,7 +16,7 @@ namespace rotating_work_schedule.Models
       public TimeSpan End { get; set; }
 
       [Required] // Campo obrigatório
-      public DayOfWeek DayWeek { get; set; }
+      public DayOfWeek DayOfWeek { get; set; }
 
       public DateTime? Canceled { get; set; } // Pode ser nulo
 
