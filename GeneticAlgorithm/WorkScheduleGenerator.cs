@@ -35,10 +35,10 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       public List<int[,]> getBestSchedules()
       {
-         return this.population.OrderByDescending(c => fitnessFunction(c)).Take(3).ToList();
+         return this.population.OrderByDescending(c => fitnessFunction(c)).ToList();
       }
 
-      public async Task runGeneticAlgorithmAsync(int generations)
+      public async Task RunGeneticAlgorithmAsync(int generations)
       {
          await generatePopulationAsync();
 
@@ -83,6 +83,25 @@ namespace rotating_work_schedule.GeneticAlgorithm
          }
       }
 
+      private Boolean IsWithinWorkingHours(int column)
+      {
+         int totalMinutes = column * 30;
+         int minutesInDay = totalMinutes % (24 * 60);
+         int hour = minutesInDay / 60;
+         int minute = minutesInDay % 60;
+
+         OperatingSchedule schedule = OperatingSchedule[(int)getDayOfWeekFromColumn(column)];
+
+         if (schedule != null)
+         {
+            TimeSpan currentTime = new TimeSpan(hour, minute, 0);
+
+            if (currentTime >= schedule.Start && currentTime <= schedule.End)
+               return true;
+         }
+         return false;
+      }
+
       public async
       Task
       generatePopulationAsync()
@@ -103,11 +122,19 @@ namespace rotating_work_schedule.GeneticAlgorithm
       {
          int[,] chromosome = new int[rowsSize, columnsSize];
 
-         for (int column = 0; column < this.columnsSize; column++)
+         for (int row = 0; row < this.rowsSize; row++)
          {
-            for (int row = 0; row < this.rowsSize; row++)
+            for (int column = 0; column < this.columnsSize; column++)
             {
-               chromosome[row, column] = random.Next(0, 2);
+               bool isWorkingHour = IsWithinWorkingHours(column);
+               if (isWorkingHour)
+               {
+                  chromosome[row, column] = random.Next(0, 2);
+               }
+               else
+               {
+                  chromosome[row, column] = 0;
+               }
             }
          }
 
@@ -155,13 +182,14 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private int[,] crossover(int[,] parent1, int[,] parent2)
       {
          int[,] child = new int[rowsSize, columnsSize];
-         int cutoffPoint = random.Next(0, IntervalosPorDia * this.Days);
+
 
          for (int f = 0; f < rowsSize; f++)
          {
-            for (int t = 0; t < IntervalosPorDia * this.Days; t++)
+            for (int t = 0; t < columnsSize * this.Days; t++)
             {
-               child[f, t] = (t < cutoffPoint) ? parent1[f, t] : parent2[f, t];
+               int cutoffPoint = random.Next() % 2;
+               child[f, t] = cutoffPoint == 1 ? parent1[f, t] : parent2[f, t];
             }
          }
 
@@ -171,29 +199,33 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private int fitnessFunction(int[,] chromosome)
       {
          int fitness = 0;
-         int acceptableHours;
+         int hoursWorked;
 
          for (int row = 0; row < rowsSize; row++)
          {
-            acceptableHours = 0;
+
+            hoursWorked = 0;
 
             for (int column = 0; column < columnsSize; column++)
             {
+               bool isWorkingHour = IsWithinWorkingHours(column);
 
-               acceptableHours += consecutiveTimes(chromosome, row, column);
-               fitness += acceptableHours;
+               fitness += isWithinOperatingHours(chromosome, row, column);
 
-               if (chromosome[row, column] == 1)
+               if (isWorkingHour)
                {
-                  fitness += isWithinOperatingHours(column);
+                  fitness += consecutiveTimes(chromosome, row, column);
+
+                  if (chromosome[row, column] == 1)
+                  {
+                     hoursWorked += 1;
+                  }
                }
             }
 
-            if (this.Days * 10 > acceptableHours && this.Days * 14 < acceptableHours)
-            {
-               fitness += 2;
-            }
+            fitness += ValueWorkHours(row, hoursWorked);
          }
+
          return fitness;
       }
 
@@ -214,29 +246,48 @@ namespace rotating_work_schedule.GeneticAlgorithm
          return currentDate.DayOfWeek;
       }
 
-      private int isWithinOperatingHours(int column)
+      private int isWithinOperatingHours(int[,] chromosome, int row, int column)
       {
-         int totalMinutes = column * 30;
-         int minutesInDay = totalMinutes % (24 * 60);
-         int hour = minutesInDay / 60;
-         int minute = minutesInDay % 60;
+         bool isWorkingHour = IsWithinWorkingHours(column);
+         if (chromosome[row, column] == 0)
+            return 0;
 
-         OperatingSchedule schedule = OperatingSchedule[(int)getDayOfWeekFromColumn(column)];
+         return isWorkingHour ? 10 : -10;
+      }
 
-         if (schedule != null)
-         {
-            TimeSpan currentTime = new TimeSpan(hour, minute, 0);
+      private int ValueWorkHours(int row, int hoursWorked)
+      {
+         JobPosition? jobPosition = this.Employees[row].JobPosition;
+         if (jobPosition == null)
+            return 0;
 
-            if (currentTime < schedule.Start || currentTime > schedule.End)
-            {
-               return -100;
-            }
-            else if (currentTime >= schedule.Start && currentTime <= schedule.End)
-            {
-               return 100;
-            }
-         }
-         return 0;
+         // Raízes da função quadrática
+         double root1 = jobPosition.Workload - 2;
+         double root2 = jobPosition.Workload + 2;
+
+         // Coordenada x do vértice (ponto médio das raízes)
+         double xVertex = (root1 + root2) / 2;
+
+         // Como o vértice é o ponto de máximo, substituímos x = xVertex na função
+         // f(xVertex) = a
+         // A função é f(x) = k(x - root1)(x - root2)
+         // No vértice, f(xVertex) = k(xVertex - root1)(xVertex - root2) = a
+
+         // Calcula k
+         double k = jobPosition.Workload / ((xVertex - root1) * (xVertex - root2));
+
+         // Como a parábola tem ponto de máximo, k deve ser negativo
+         k = -Math.Abs(k);
+
+         // Forma expandida da função quadrática
+         double b = -k * (root1 + root2);
+         double c = k * root1 * root2;
+
+         //fatored form {k}(x - {root1})(x - {root2})
+         //exponded form {k}x² + {b}x + {c}
+         double functionValue = k * (hoursWorked * hoursWorked) + b*hoursWorked + c;
+
+         return (int)Math.Round(functionValue);
       }
 
       public void printMatrixList(List<int[,]> matrices)
