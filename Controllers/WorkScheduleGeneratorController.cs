@@ -21,12 +21,12 @@ public class WorkScheduleGeneratorController() : ControllerBase
         Employee[] employees = new Employee[]
         {
             new Employee { Id = 1, Name = "Employee 1", JobPosition = jobPosition },
-            // new Employee { Id = 2, Name = "Employee 2", JobPosition = jobPosition },
-            // new Employee { Id = 3, Name = "Employee 3", JobPosition = jobPosition },
-            // new Employee { Id = 4, Name = "Employee 4", JobPosition = jobPosition3 },
-            // new Employee { Id = 5, Name = "Employee 5", JobPosition = jobPosition2 },
-            // new Employee { Id = 6, Name = "Employee 6", JobPosition = jobPosition2 },
-            // new Employee { Id = 7, Name = "Employee 7", JobPosition = jobPosition4 }
+            new Employee { Id = 2, Name = "Employee 2", JobPosition = jobPosition },
+            new Employee { Id = 3, Name = "Employee 3", JobPosition = jobPosition },
+            new Employee { Id = 4, Name = "Employee 4", JobPosition = jobPosition3 },
+            new Employee { Id = 5, Name = "Employee 5", JobPosition = jobPosition2 },
+            new Employee { Id = 6, Name = "Employee 6", JobPosition = jobPosition2 },
+            new Employee { Id = 7, Name = "Employee 7", JobPosition = jobPosition4 }
         };
 
         OperatingSchedule[] operatingSchedules = new OperatingSchedule[]
@@ -41,7 +41,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
         };
 
         WorkScheduleGenerator workScheduleGenerator = new WorkScheduleGenerator(employees, operatingSchedules, new DateTime(2025, 3, 17, 0, 0, 0));
-        await workScheduleGenerator.RunGeneticAlgorithmAsync(500);
+        await workScheduleGenerator.RunGeneticAlgorithmAsync(1000);
 
 
         // Chamada da função para imprimir no console

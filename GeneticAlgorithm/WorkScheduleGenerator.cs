@@ -10,7 +10,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private Employee[] Employees { get; set; }
       private OperatingSchedule[] OperatingSchedule { get; set; }
       private const int PopulationSize = 100;
-      private int Days = 1;
+      private int Days = 2;
       private readonly Random random = new Random();
       private int columnsSize = 0;
       private int rowsSize = 0;
@@ -29,7 +29,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       public void SortPopulation()
       {
-         this.population.Sort((a, b) => FitnessFunction(b).CompareTo(FitnessFunction(a)));
+         this.population.Sort((a, b) => FitnessFunction(a).CompareTo(FitnessFunction(b)));
       }
 
       public List<int[,]> getBestSchedules()
@@ -45,48 +45,55 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
          for (int generation = 0; generation < generations; generation++)
          {
-            List<Chromosome> newPopulation = new List<Chromosome>();
 
             for (int i = 0; i < PopulationSize; i++)
             {
-               Chromosome parent1 = selectionByTournament();
-               Chromosome parent2 = selectionByTournament();
+               // Chromosome parent1 = selectionByTournament();
+               // Chromosome parent2 = selectionByTournament();
+               int menor = PopulationSize - i;
+               Chromosome parent1 = this.population[i];
+               Chromosome parent2 = this.population[PopulationSize - i - 1];
 
                Chromosome child;
-               if (random.NextDouble() < CrossoverRate)
-               {
-                  child = Crossover(parent1, parent2);
-               }
-               else
-               {
-                  child = parent1;
-               }
+               Chromosome child2;
+               // if (random.NextDouble() < CrossoverRate)
+               // {
+               child = Crossover(parent1, parent2);
+               child2 = Crossover(parent1, parent2);
+               // }
+               // else
+               // {
+               //    child = parent1;
+               // }
 
                if (random.NextDouble() < MutationRate)
                {
                   child = Mutate(child);
                }
+               if (random.NextDouble() < MutationRate)
+               {
+                  child2 = Mutate(child2);
+               }
 
                int parent1Fitness = FitnessFunction(parent1);
                int parent2Fitness = FitnessFunction(parent2);
                int childFitness = FitnessFunction(child);
+               int child2Fitness = FitnessFunction(child2);
 
                if (childFitness > parent1Fitness && childFitness > parent2Fitness)
                {
-                  newPopulation.Add(child);
+                  this.population.Add(child);
                }
-               else if (parent1Fitness > parent2Fitness)
+
+               if (child2Fitness > parent1Fitness && child2Fitness > parent2Fitness)
                {
-                  newPopulation.Add(parent1);
-               }
-               else
-               {
-                  newPopulation.Add(parent2);
+                  this.population.Add(child);
                }
             }
 
-            this.population = newPopulation;
             this.SortPopulation();
+            if (this.population.Count > PopulationSize)
+               this.population.RemoveRange(this.population.Count - (PopulationSize + 1), this.population.Count - PopulationSize);
          }
       }
 
@@ -192,7 +199,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
          for (int f = 0; f < rowsSize; f++)
          {
-            for (int t = 0; t < columnsSize * this.Days; t++)
+            for (int t = 0; t < columnsSize; t++)
             {
                int cutoffPoint = random.Next() % 2;
                child.Gene[f, t] = cutoffPoint == 1 ? parent1.Gene[f, t] : parent2.Gene[f, t];
@@ -238,9 +245,14 @@ namespace rotating_work_schedule.GeneticAlgorithm
                      hoursWorked += 1;
                   }
                }
+               else
+               {
+                  fitness += ValueWorkHours(row, hoursWorked);
+                  hoursWorked = 0;
+               }
             }
 
-            fitness += ValueWorkHours(row, hoursWorked);
+
          }
 
          chromosome.calculated = true;
@@ -253,7 +265,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
       {
          if (chromosome.Gene[row, column] == 1 && column > 1 && chromosome.Gene[row, column - 1] == 1)
          {
-            return 10; // More points for consecutive 1s
+            return 5; // More points for consecutive 1s
          }
          return 0;
       }
@@ -277,13 +289,16 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       private int ValueWorkHours(int row, int hoursWorked)
       {
+         int workload = 0;
          JobPosition? jobPosition = this.Employees[row].JobPosition;
          if (jobPosition == null)
             return 0;
 
+         workload = jobPosition.Workload * 2;
+
          // Raízes da função quadrática
-         double root1 = jobPosition.Workload - 2;
-         double root2 = jobPosition.Workload + 2;
+         double root1 = workload - 1;
+         double root2 = workload + 1;
 
          // Coordenada x do vértice (ponto médio das raízes)
          double xVertex = (root1 + root2) / 2;
@@ -294,7 +309,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
          // No vértice, f(xVertex) = k(xVertex - root1)(xVertex - root2) = a
 
          // Calcula k
-         double k = jobPosition.Workload / ((xVertex - root1) * (xVertex - root2));
+         double k = workload / ((xVertex - root1) * (xVertex - root2));
 
          // Como a parábola tem ponto de máximo, k deve ser negativo
          k = -Math.Abs(k);
@@ -308,7 +323,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
          double functionValue = k * (hoursWorked * hoursWorked) + b * hoursWorked + c;
 
          if (functionValue > 0)
-            functionValue = functionValue * 10;
+            functionValue += functionValue * 10;
 
          return (int)Math.Round(functionValue);
       }
