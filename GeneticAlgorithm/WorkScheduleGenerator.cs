@@ -17,10 +17,9 @@ namespace rotating_work_schedule.GeneticAlgorithm
       public List<Chromosome> population = new List<Chromosome>();
       private DateTime startDate;
 
-
       public WorkScheduleGenerator(Employee[] employees, OperatingSchedule[] operatingSchedules, DateTime? startDate = null)
       {
-         Employees = employees;
+         Employees = employees.OrderBy(emp => emp?.JobPosition?.Id).ToArray();
          OperatingSchedule = operatingSchedules.OrderBy(os => os.DayOfWeek).ToArray();
          this.rowsSize = this.Employees.Count();
          this.columnsSize = this.Days * 24 * 2;
@@ -34,13 +33,44 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       public List<int[,]> getBestSchedules()
       {
-         // return this.population.OrderByDescending(c => FitnessFunction(c)).Take(3).Select(c => c.Gene).ToList();
-         return this.population.OrderByDescending(c => FitnessFunction(c)).Select(c => c.Gene).ToList();
+         return this.population.OrderByDescending(c => FitnessFunction(c)).Take(3).Select(c => c.Gene).ToList();
+      }
+
+      private DayOfWeek getDayOfWeekFromColumn(int column)
+      {
+         int totalMinutes = column * 30;
+         int daysOffset = totalMinutes / (24 * 60);
+         DateTime currentDate = startDate.AddDays(daysOffset);
+         return currentDate.DayOfWeek;
+      }
+
+      private TimeSpan CalculateTime(int column)
+      {
+         int totalMinutes = column * 30;
+         int minutesInDay = totalMinutes % (24 * 60);
+         int hour = minutesInDay / 60;
+         int minute = minutesInDay % 60;
+
+         return new TimeSpan(hour, minute, 0);
+      }
+
+      private Boolean IsWithinWorkingHours(int column)
+      {
+         OperatingSchedule schedule = OperatingSchedule[(int)getDayOfWeekFromColumn(column)];
+
+         if (schedule != null)
+         {
+            TimeSpan currentTime = this.CalculateTime(column);
+
+            if (currentTime > schedule.Start && currentTime <= schedule.End)
+               return true;
+         }
+         return false;
       }
 
       public async Task RunGeneticAlgorithmAsync(int generations)
       {
-         await generatePopulationAsync();
+         await generatePopulation();
          this.SortPopulation();
 
          for (int generation = 0; generation < generations; generation++)
@@ -48,23 +78,14 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
             for (int i = 0; i < PopulationSize; i++)
             {
-               // Chromosome parent1 = selectionByTournament();
-               // Chromosome parent2 = selectionByTournament();
-               int menor = PopulationSize - i;
                Chromosome parent1 = this.population[i];
                Chromosome parent2 = this.population[PopulationSize - i - 1];
 
                Chromosome child;
                Chromosome child2;
-               // if (random.NextDouble() < CrossoverRate)
-               // {
+
                child = Crossover(parent1, parent2);
                child2 = Crossover(parent1, parent2);
-               // }
-               // else
-               // {
-               //    child = parent1;
-               // }
 
                if (random.NextDouble() < MutationRate)
                {
@@ -87,7 +108,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
                if (child2Fitness > parent1Fitness && child2Fitness > parent2Fitness)
                {
-                  this.population.Add(child);
+                  this.population.Add(child2);
                }
             }
 
@@ -97,28 +118,9 @@ namespace rotating_work_schedule.GeneticAlgorithm
          }
       }
 
-      private Boolean IsWithinWorkingHours(int column)
-      {
-         int totalMinutes = column * 30;
-         int minutesInDay = totalMinutes % (24 * 60);
-         int hour = minutesInDay / 60;
-         int minute = minutesInDay % 60;
-
-         OperatingSchedule schedule = OperatingSchedule[(int)getDayOfWeekFromColumn(column)];
-
-         if (schedule != null)
-         {
-            TimeSpan currentTime = new TimeSpan(hour, minute, 0);
-
-            if (currentTime >= schedule.Start && currentTime <= schedule.End)
-               return true;
-         }
-         return false;
-      }
-
       public async
       Task
-      generatePopulationAsync()
+      generatePopulation()
       {
          List<Task<Chromosome>> tasks = new List<Task<Chromosome>>(PopulationSize);
 
@@ -135,15 +137,29 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private Chromosome generateChromosome()
       {
          Chromosome chromosome = new Chromosome(rowsSize, columnsSize);
+         int group = -1;
 
          for (int row = 0; row < this.rowsSize; row++)
          {
+            group = -1;
+
             for (int column = 0; column < this.columnsSize; column++)
             {
                bool isWorkingHour = IsWithinWorkingHours(column);
-               if (isWorkingHour)
+
+               if (group > -1)
+               {
+                  chromosome.Gene[row, column] = 1;
+                  group++;
+                  if(group == 4){
+                     group = -1;
+                  }
+               }
+               else if (isWorkingHour)
                {
                   chromosome.Gene[row, column] = random.Next(0, 2);
+                  if (chromosome.Gene[row, column] == 1)
+                     group++;
                }
                else
                {
@@ -169,28 +185,6 @@ namespace rotating_work_schedule.GeneticAlgorithm
             }
          }
          return chromosome;
-      }
-
-      Chromosome selectionByTournament()
-      {
-         int tournamentSize = 5;
-         int bestFitness = int.MinValue;
-         Chromosome bestChromosome = new(rowsSize, columnsSize);
-
-         for (int i = 0; i < tournamentSize; i++)
-         {
-            int randomIndex = random.Next() % PopulationSize;
-            Chromosome chromosome = this.population[randomIndex];
-            int fitness = FitnessFunction(chromosome);
-
-            if (fitness > bestFitness)
-            {
-               bestFitness = fitness;
-               bestChromosome = chromosome;
-            }
-         }
-
-         return bestChromosome;
       }
 
       private Chromosome Crossover(Chromosome parent1, Chromosome parent2)
@@ -224,35 +218,35 @@ namespace rotating_work_schedule.GeneticAlgorithm
       {
          int fitness = 0;
          int hoursWorked;
+         int consecutiveTimes = 0;
 
          for (int row = 0; row < rowsSize; row++)
          {
 
             hoursWorked = 0;
+            consecutiveTimes = 0;
 
             for (int column = 0; column < columnsSize; column++)
             {
                bool isWorkingHour = IsWithinWorkingHours(column);
 
-               fitness += isWithinOperatingHours(chromosome, row, column);
-
                if (isWorkingHour)
                {
-                  fitness += consecutiveTimes(chromosome, row, column);
+                  consecutiveTimes += ConsecutiveTimes(chromosome, row, column);
 
                   if (chromosome.Gene[row, column] == 1)
                   {
                      hoursWorked += 1;
                   }
                }
-               else
+               else if ((column > 0 && column % 48 == 0) || (column + 1 == columnsSize))
                {
-                  fitness += ValueWorkHours(row, hoursWorked);
+                  fitness += ValueWorkHours(row, hoursWorked, consecutiveTimes);
+                  fitness += consecutiveTimes;
                   hoursWorked = 0;
+                  consecutiveTimes = 0;
                }
             }
-
-
          }
 
          chromosome.calculated = true;
@@ -261,33 +255,16 @@ namespace rotating_work_schedule.GeneticAlgorithm
          return fitness;
       }
 
-      private int consecutiveTimes(Chromosome chromosome, int row, int column)
+      private int ConsecutiveTimes(Chromosome chromosome, int row, int column)
       {
-         if (chromosome.Gene[row, column] == 1 && column > 1 && chromosome.Gene[row, column - 1] == 1)
+         if (chromosome.Gene[row, column] == 1 && (column < columnsSize - 1 || chromosome.Gene[row, column + 1] == 1 || chromosome.Gene[row, column - 1] == 1))
          {
-            return 5; // More points for consecutive 1s
+            return 100; // More points for consecutive 1s
          }
          return 0;
       }
 
-      private DayOfWeek getDayOfWeekFromColumn(int column)
-      {
-         int totalMinutes = column * 30;
-         int daysOffset = totalMinutes / (24 * 60);
-         DateTime currentDate = startDate.AddDays(daysOffset);
-         return currentDate.DayOfWeek;
-      }
-
-      private int isWithinOperatingHours(Chromosome chromosome, int row, int column)
-      {
-         bool isWorkingHour = IsWithinWorkingHours(column);
-         if (chromosome.Gene[row, column] == 0)
-            return 0;
-
-         return isWorkingHour ? 10 : -100;
-      }
-
-      private int ValueWorkHours(int row, int hoursWorked)
+      private int ValueWorkHours(int row, int hoursWorked, int consecutiveTimes)
       {
          int workload = 0;
          JobPosition? jobPosition = this.Employees[row].JobPosition;
@@ -323,7 +300,19 @@ namespace rotating_work_schedule.GeneticAlgorithm
          double functionValue = k * (hoursWorked * hoursWorked) + b * hoursWorked + c;
 
          if (functionValue > 0)
-            functionValue += functionValue * 10;
+         {
+            functionValue = functionValue + consecutiveTimes + 1000;
+            
+            functionValue = functionValue * 2;
+            // if (hoursWorked % 2 == 0)
+            // {
+            //    functionValue = functionValue + 10000;
+            // }
+         }
+         else
+         {
+            functionValue = functionValue + consecutiveTimes;
+         }
 
          return (int)Math.Round(functionValue);
       }
@@ -334,6 +323,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
          {
             Console.WriteLine($"Matriz {i + 1}:");
             this.printMatrix(matrices[i]);
+            this.printSchedule(matrices[i]);
             Console.WriteLine();
          }
       }
@@ -345,10 +335,61 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
          for (int i = 0; i < rows; i++)
          {
-            // Console.Write("Employee " + Employees[i].Name + ": ");
             for (int j = 0; j < cols; j++)
             {
                Console.Write(matrix[i, j] + " ");
+            }
+            Console.WriteLine();
+         }
+      }
+
+      private void printSchedule(int[,] matrix)
+      {
+         int workingHours = 0;
+         int rows = matrix.GetLength(0);
+         int cols = matrix.GetLength(1);
+
+         for (int i = 0; i < rows; i++)
+         {
+            workingHours = 0;
+
+            Console.Write("Employee " + Employees[i].Name + ": ");
+            Console.WriteLine();
+            Console.Write("           ");
+
+
+            for (int j = 0; j < cols; j++)
+            {
+               TimeSpan currentTime = this.CalculateTime(j);
+
+               if (matrix[i, j] == 1)
+                  workingHours++;
+
+               if ((matrix[i, j] == 1 && matrix[i, j - 1] == 0) || (matrix[i, j] == 1 && j == 0))
+               {
+                  Console.Write("( " + (currentTime - new TimeSpan(0, 30, 0)).ToString().Substring(0, 5) + " - ");
+                  if (matrix[i, j + 1] == 0 || j == cols - 1)
+                  {
+                     Console.Write(this.CalculateTime(j).ToString().Substring(0, 5) + ") ");
+                  }
+               }
+               else if ((matrix[i, j] == 1 && matrix[i, j + 1] == 0) || (matrix[i, j] == 1 && j == cols - 1))
+               {
+                  Console.Write(currentTime.ToString().Substring(0, 5) + ") ");
+               }
+
+               if ((j % 48 == 0 && j != 0) || j == cols - 1)
+               {
+                  Console.WriteLine();
+                  Console.Write("           ");
+                  Console.Write("Working Hours: " + new TimeSpan(workingHours / 2, (workingHours % 2) * 30, 0).ToString().Substring(0, 5));
+                  // Console.Write("Working Hours: " + this.CalculateTime(workingHours).ToString().Substring(0, 5));
+                  Console.WriteLine();
+                  if (j != cols - 1)
+                     Console.Write("           ");
+
+                  workingHours = 0;
+               }
             }
             Console.WriteLine();
          }
