@@ -41,11 +41,11 @@ public class WorkScheduleGeneratorController() : ControllerBase
         };
 
         WorkScheduleGenerator workScheduleGenerator = new WorkScheduleGenerator(employees, operatingSchedules, new DateTime(2025, 3, 17, 0, 0, 0));
-        await workScheduleGenerator.RunGeneticAlgorithmAsync(1000);
+        await workScheduleGenerator.RunGeneticAlgorithmAsync(100);
 
 
         // Chamada da função para imprimir no console
-        workScheduleGenerator.printMatrixList(workScheduleGenerator.getBestSchedules());
+        workScheduleGenerator.printMatrixList();
 
         // Chamada da função que converte para lista de strings
         List<string> matrixStrings = ConvertMatrixToStringList(workScheduleGenerator.getBestSchedules());
