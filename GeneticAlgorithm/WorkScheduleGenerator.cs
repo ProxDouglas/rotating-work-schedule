@@ -9,6 +9,7 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private Employee[] Employees { get; set; }
       private OperatingSchedule[] OperatingSchedule { get; set; }
       private const int PopulationSize = 100;
+      private const int LocalPopulation = 5;
       private int Days = 1;
       private readonly Random random = new Random();
       private int columnsSize = 0;
@@ -25,14 +26,19 @@ namespace rotating_work_schedule.GeneticAlgorithm
          this.startDate = startDate ?? DateTime.Now;
       }
 
+      private int GetMaxFitnees()
+      {
+         return 25600 * this.Employees.Count() * this.Days;
+      }
+
       public void SortPopulation()
       {
-         this.population.Sort((a, b) => FitnessFunction(a).CompareTo(FitnessFunction(b)));
+         this.population.Sort((a, b) => FitnessFunction(b).CompareTo(FitnessFunction(a)));
       }
 
       public List<int[,]> getBestSchedules()
       {
-         return this.population.OrderByDescending(c => FitnessFunction(c)).Take(10).Select(c => c.Gene).ToList();
+         return this.population.OrderByDescending(c => FitnessFunction(c)).Take(3).Select(c => c.Gene).ToList();
       }
 
       private DayOfWeek getDayOfWeekFromColumn(int column)
@@ -69,10 +75,13 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       public async Task RunGeneticAlgorithmAsync(int generations)
       {
+         bool stopProcess = false;
+         int generation = 0;
+
          await generatePopulation();
          this.SortPopulation();
 
-         for (int generation = 0; generation < generations; generation++)
+         while (!stopProcess && generation < generations)
          {
 
             for (int i = 0; i < PopulationSize; i++)
@@ -113,7 +122,30 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
             this.SortPopulation();
             if (this.population.Count > PopulationSize)
-               this.population.RemoveRange(this.population.Count - (PopulationSize + 1), this.population.Count - PopulationSize);
+            {
+               this.population.RemoveRange(PopulationSize, this.population.Count - PopulationSize);
+
+               int teste = this.GetMaxFitnees();
+               // if (this.population.Any(c => c.Fitness == this.GetMaxFitnees()))
+               // {
+               //    Console.WriteLine("Generation: " + generation);
+               //    stopProcess = true;
+               // }
+            }
+
+            // if (this.population.Count <= PopulationSize)
+            // {
+            //    int length = PopulationSize - this.population.Count;
+            //    List<Task> tasks = new List<Task>(length);
+            //    for (int i = 0; i <= length; i++)
+            //    {
+            //       tasks.Add(Task.Run(() => this.population.Add(generateChromosome())));
+            //    }
+
+            //    await Task.WhenAll(tasks);
+            // }
+
+            generation++;
          }
       }
 
@@ -134,11 +166,11 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private Chromosome generateChromosome()
       {
          Chromosome chromosome = new Chromosome(rowsSize, columnsSize);
-         int group = -1;
+         // int group = -1;
 
          for (int row = 0; row < this.rowsSize; row++)
          {
-            group = -1;
+            // group = -1;
 
             for (int column = 0; column < this.columnsSize; column++)
             {
@@ -147,8 +179,6 @@ namespace rotating_work_schedule.GeneticAlgorithm
                if (isWorkingHour)
                {
                   chromosome.Gene[row, column] = random.Next(0, 2);
-                  if (chromosome.Gene[row, column] == 1)
-                     group++;
                }
                else
                {
@@ -188,37 +218,37 @@ namespace rotating_work_schedule.GeneticAlgorithm
             {
                if (this.IsWithinWorkingHours(column) && random.NextDouble() < MutationRate)
                {
-                  if (chromosome.Gene[row, column] == 0)
-                  {
-                     if (column < columnsSize && chromosome.Gene[row, column + 1] == 1)
-                     {
-                        chromosome.Gene[row, column] = 1;
-                     }
-                     else if (column > 0 && chromosome.Gene[row, column - 1] == 1)
-                     {
-                        chromosome.Gene[row, column] = 1;
-                     }
-                     else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 0 && chromosome.Gene[row, column + 1] == 0)
-                     {
-                        chromosome.Gene[row, column] = 0;
-                     }
-                  }
-                  else if (chromosome.Gene[row, column] == 1)
-                  {
-                     if (column < columnsSize && chromosome.Gene[row, column + 1] == 0)
-                     {
-                        chromosome.Gene[row, column] = 0;
-                     }
-                     else if (column > 0 && chromosome.Gene[row, column - 1] == 0)
-                     {
-                        chromosome.Gene[row, column] = 0;
-                     }
-                     else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 1 && chromosome.Gene[row, column + 1] == 1)
-                     {
-                        chromosome.Gene[row, column] = 1;
-                     }
-                  }
-                  // chromosome.Gene[row, column] = chromosome.Gene[row, column] == 0 ? 1 : 0;
+                  // if (chromosome.Gene[row, column] == 0)
+                  // {
+                  //    if (column < columnsSize && chromosome.Gene[row, column + 1] == 1)
+                  //    {
+                  //       chromosome.Gene[row, column] = 1;
+                  //    }
+                  //    else if (column > 0 && chromosome.Gene[row, column - 1] == 1)
+                  //    {
+                  //       chromosome.Gene[row, column] = 1;
+                  //    }
+                  //    else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 0 && chromosome.Gene[row, column + 1] == 0)
+                  //    {
+                  //       chromosome.Gene[row, column] = 0;
+                  //    }
+                  // }
+                  // else if (chromosome.Gene[row, column] == 1)
+                  // {
+                  //    if (column < columnsSize && chromosome.Gene[row, column + 1] == 0)
+                  //    {
+                  //       chromosome.Gene[row, column] = 0;
+                  //    }
+                  //    else if (column > 0 && chromosome.Gene[row, column - 1] == 0)
+                  //    {
+                  //       chromosome.Gene[row, column] = 0;
+                  //    }
+                  //    else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 1 && chromosome.Gene[row, column + 1] == 1)
+                  //    {
+                  //       chromosome.Gene[row, column] = 1;
+                  //    }
+                  // }
+                  chromosome.Gene[row, column] = chromosome.Gene[row, column] == 0 ? 1 : 0;
                }
             }
          }
@@ -284,8 +314,8 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
                if (isWorkingHour)
                {
-                  consecutiveTimes += ConsecutiveTimes(chromosome, row, column);
-                  groupedHours += GroupedHours(chromosome, row, column);
+                  // consecutiveTimes += ConsecutiveTimes(chromosome, row, column);
+                  // groupedHours += GroupedHours(chromosome, row, column);
 
                   if (chromosome.Gene[row, column] == 1)
                      end = column;
@@ -301,7 +331,8 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
                   fitness += ValueWorkHours(row, hoursWorked);
                   fitness += ValueWorkHours(row, Math.Abs(start - end) + 1); // analyzes the distance between the start and end hours worked
-
+                  fitness += WorkShiftSchedule(chromosome, row, column) * 5;
+                  // fitness += groupedHours;
                   hoursWorked = 0;
                   consecutiveTimes = 0;
                   groupedHours = 0;
@@ -314,14 +345,14 @@ namespace rotating_work_schedule.GeneticAlgorithm
          return fitness;
       }
 
-      private int ConsecutiveTimes(Chromosome chromosome, int row, int column)
-      {
-         if (chromosome.Gene[row, column] == 1 && (column < columnsSize - 1 || chromosome.Gene[row, column + 1] == 1 || chromosome.Gene[row, column - 1] == 1))
-         {
-            return 1; // More points for consecutive 1s
-         }
-         return 0;
-      }
+      // private int ConsecutiveTimes(Chromosome chromosome, int row, int column)
+      // {
+      //    if (chromosome.Gene[row, column] == 1 && (column < columnsSize - 1 || chromosome.Gene[row, column + 1] == 1 || chromosome.Gene[row, column - 1] == 1))
+      //    {
+      //       return 1; // More points for consecutive 1s
+      //    }
+      //    return 0;
+      // }
 
       private int GroupedHours(Chromosome chromosome, int row, int column)
       {
@@ -403,6 +434,76 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
          // Retorna o valor arredondado para o inteiro mais próximo
          return (int)Math.Round(functionValue);
+      }
+
+      private int WorkShiftSchedule(Chromosome chromosome, int row, int column)
+      {
+         int points = 0;
+         int index = 0;
+         int start = -1;
+         int end = -1;
+         Employee lastEmployeeWithSameJobPosition = null;
+         Employee employee = Employees[row];
+         JobPosition jobPosition = employee.JobPosition;
+
+         do
+         {
+            JobPosition jobPositionLine = Employees[index].JobPosition;
+            if (jobPositionLine.Id == jobPosition.Id && start == -1)
+            {
+               start = index;
+            }
+            else if (start > -1 && (index == Employees.Length - 1 || Employees[index + 1]?.JobPosition?.Id == jobPosition.Id))
+            {
+               end = index + 1;
+               lastEmployeeWithSameJobPosition = Employees[index];
+            }
+
+            index++;
+         } while (index < Employees.Length && end == -1);
+
+
+         if (lastEmployeeWithSameJobPosition != null && lastEmployeeWithSameJobPosition.Id != employee.Id && (end - start) > 0)
+         {
+            for (int col = 0; col < this.columnsSize; col++)
+            {
+               bool isWorkingHour = IsWithinWorkingHours(col);
+
+               if (isWorkingHour)
+               {
+                  int countOnes = 0;
+                  for (int i = start; i < end; i++)
+                  {
+                     if (chromosome.Gene[i, col] == 1)
+                     {
+                        countOnes++;
+                     }
+                  }
+                  if (countOnes >= 1 && countOnes < 3)
+                  {
+                     if (countOnes == 1)
+                     {
+                        points += 100;
+                     }
+                     else
+                     {
+                        points += 50;
+                     }
+                  }
+                  else if (countOnes == 3)
+                  {
+                     points += 1;
+                  }
+                  // else if (countOnes == 0)
+                  // {
+                  //    points = 0;
+                  // }
+               }
+
+            }
+         }
+
+         return points;
       }
 
       public void printMatrixList()
