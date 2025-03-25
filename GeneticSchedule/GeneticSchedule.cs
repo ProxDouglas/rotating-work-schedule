@@ -40,16 +40,34 @@ namespace rotating_work_schedule.GeneticSchedule
       private Schedule GenerateRandomSchedule()
       {
          Schedule schedule = new();
+         Dictionary<string, int> taskWeeklyCount = new();
+         Dictionary<(int Day, string TaskName), int> taskDailyCount = new();
+
          foreach (var task in tasks)
          {
-            int day, timeSlot;
-            do
-            {
-               day = random.Next(days);
-               timeSlot = random.Next(timeSlotsPerDay);
-            } while (task.ForbiddenSlots.Contains((day, timeSlot)) || schedule.WeeklySchedule.ContainsKey((day, timeSlot)));
+            int assignedHours = 0;
+            taskWeeklyCount[task.Name] = 0;
 
-            schedule.WeeklySchedule[(day, timeSlot)] = task;
+            while (assignedHours < task.WeeklyHours && taskWeeklyCount[task.Name] < task.MaxRepetitions)
+            {
+               int day, timeSlot;
+               do
+               {
+                  day = random.Next(days);
+                  timeSlot = random.Next(timeSlotsPerDay);
+               } while (task.ForbiddenSlots.Contains((day, timeSlot)) || schedule.WeeklySchedule.ContainsKey((day, timeSlot)));
+
+               if (!taskDailyCount.ContainsKey((day, task.Name)))
+                  taskDailyCount[(day, task.Name)] = 0;
+
+               if (taskDailyCount[(day, task.Name)] < task.MaxDailyHours)
+               {
+                  schedule.WeeklySchedule[(day, timeSlot)] = task;
+                  taskDailyCount[(day, task.Name)]++;
+                  taskWeeklyCount[task.Name]++;
+                  assignedHours++;
+               }
+            }
          }
          return schedule;
       }
@@ -58,6 +76,7 @@ namespace rotating_work_schedule.GeneticSchedule
       {
          double score = 0;
          Dictionary<int, int> cognitiveLoadPerDay = new();
+         Dictionary<string, int> taskWeeklyCount = new();
 
          foreach (var kv in schedule.WeeklySchedule)
          {
@@ -69,11 +88,22 @@ namespace rotating_work_schedule.GeneticSchedule
                cognitiveLoadPerDay[kv.Key.Day] = 0;
 
             cognitiveLoadPerDay[kv.Key.Day] += task.CognitiveLoad;
+
+            if (!taskWeeklyCount.ContainsKey(task.Name))
+               taskWeeklyCount[task.Name] = 0;
+
+            taskWeeklyCount[task.Name]++;
          }
 
          foreach (var load in cognitiveLoadPerDay.Values)
          {
             if (load > 10) score -= (load - 10) * 2; // Penalização por sobrecarga
+         }
+
+         foreach (var task in tasks)
+         {
+            if (taskWeeklyCount.ContainsKey(task.Name) && taskWeeklyCount[task.Name] > task.MaxRepetitions)
+               score -= (taskWeeklyCount[task.Name] - task.MaxRepetitions) * 5; // Penalização por excesso de repetições
          }
 
          return score;
@@ -137,6 +167,34 @@ namespace rotating_work_schedule.GeneticSchedule
             } while (task.ForbiddenSlots.Contains((day, timeSlot)) || schedule.WeeklySchedule.ContainsKey((day, timeSlot)));
 
             schedule.WeeklySchedule[(day, timeSlot)] = task;
+         }
+      }
+
+      public string GetTimeRange(int timeSlot)
+      {
+         string[] timeRanges = {
+        "08:00 - 09:30", "09:30 - 11:00", "11:00 - 12:30",
+        "12:30 - 14:00", "14:00 - 15:30", "15:30 - 17:00",
+        "17:00 - 18:30", "18:30 - 21:00"
+    };
+         return timeRanges[timeSlot];
+      }
+
+      public string GetDayName(int day)
+      {
+         string[] days = { "Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado" };
+         return days[day];
+      }
+
+      public void PrintSchedule(Schedule schedule)
+      {
+         foreach (var kv in schedule.WeeklySchedule)
+         {
+            int day = kv.Key.Day;
+            int timeSlot = kv.Key.TimeSlot;
+            string timeRange = GetTimeRange(timeSlot);
+
+            Console.WriteLine($"Dia {day} ({GetDayName(day)}), {timeRange}: {kv.Value.Name}");
          }
       }
    }

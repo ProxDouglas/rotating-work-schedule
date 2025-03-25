@@ -57,19 +57,21 @@ public class WorkScheduleGeneratorController() : ControllerBase
 
         List<Task> tasks = new()
         {
-            new Task { Name = "Estudar AI", Difficulty = 4, CognitiveLoad = 5, Affinity = 5, ForbiddenSlots = new() },
-            new Task { Name = "Treino", Difficulty = 3, CognitiveLoad = 2, Affinity = 4, ForbiddenSlots = new() },
-            new Task { Name = "Leitura", Difficulty = 2, CognitiveLoad = 3, Affinity = 5, ForbiddenSlots = new() },
-            new Task { Name = "Trabalho", Difficulty = 5, CognitiveLoad = 5, Affinity = 3, ForbiddenSlots = new() }
+            new Task { Name = "Estudar AI", Difficulty = 4, CognitiveLoad = 5, Affinity = 5, WeeklyHours = 6, MaxRepetitions = 3, MaxDailyHours = 2, ForbiddenSlots = new() },
+            new Task { Name = "Treino", Difficulty = 3, CognitiveLoad = 2, Affinity = 4, WeeklyHours = 4, MaxRepetitions = 4, MaxDailyHours = 1, ForbiddenSlots = new() },
+            new Task { Name = "Leitura", Difficulty = 2, CognitiveLoad = 3, Affinity = 5, WeeklyHours = 5, MaxRepetitions = 5, MaxDailyHours = 2, ForbiddenSlots = new() },
+            new Task { Name = "Trabalho", Difficulty = 5, CognitiveLoad = 5, Affinity = 3, WeeklyHours = 10, MaxRepetitions = 5, MaxDailyHours = 3, ForbiddenSlots = new() }
         };
 
         GeneticScheduler scheduler = new(tasks);
         Schedule bestSchedule = scheduler.Run();
 
-        foreach (var kv in bestSchedule.WeeklySchedule)
-        {
-            Console.WriteLine($"Dia {kv.Key.Day}, Slot {kv.Key.TimeSlot}: {kv.Value.Name}");
-        }
+        scheduler.PrintSchedule(bestSchedule);
+
+        // foreach (var kv in bestSchedule.WeeklySchedule)
+        // {
+        //     Console.WriteLine($"Dia {kv.Key.Day}, Slot {kv.Key.TimeSlot}: {kv.Value.Name}");
+        // }
 
         return Ok("Ok");
     }
