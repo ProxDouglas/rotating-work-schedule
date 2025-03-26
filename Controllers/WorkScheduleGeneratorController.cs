@@ -2,6 +2,7 @@ namespace rotating_work_schedule.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using rotating_work_schedule.Models;
 using rotating_work_schedule.GeneticAlgorithm;
+using rotating_work_schedule.GeneticAlgorithm2;
 using rotating_work_schedule.GeneticSchedule;
 
 [ApiController]
@@ -55,23 +56,81 @@ public class WorkScheduleGeneratorController() : ControllerBase
         // Chamada da função que converte para lista de strings
         // List<string> matrixStrings = ConvertMatrixToStringList(workScheduleGenerator.getBestSchedules());
 
-        List<Task> tasks = new()
-        {
-            new Task { Name = "Estudar AI", Difficulty = 4, CognitiveLoad = 5, Affinity = 5, WeeklyHours = 6, MaxRepetitions = 3, MaxDailyHours = 2, ForbiddenSlots = new() },
-            new Task { Name = "Treino", Difficulty = 3, CognitiveLoad = 2, Affinity = 4, WeeklyHours = 4, MaxRepetitions = 4, MaxDailyHours = 1, ForbiddenSlots = new() },
-            new Task { Name = "Leitura", Difficulty = 2, CognitiveLoad = 3, Affinity = 5, WeeklyHours = 5, MaxRepetitions = 5, MaxDailyHours = 2, ForbiddenSlots = new() },
-            new Task { Name = "Trabalho", Difficulty = 5, CognitiveLoad = 5, Affinity = 3, WeeklyHours = 10, MaxRepetitions = 5, MaxDailyHours = 3, ForbiddenSlots = new() }
-        };
+        // List<Task> tasks = new()
+        // {
+        //     new Task { Name = "Estudar AI", Difficulty = 4, CognitiveLoad = 5, Affinity = 5, WeeklyHours = 6, MaxRepetitions = 3, MaxDailyHours = 2, ForbiddenSlots = new() },
+        //     new Task { Name = "Treino", Difficulty = 3, CognitiveLoad = 2, Affinity = 4, WeeklyHours = 4, MaxRepetitions = 4, MaxDailyHours = 1, ForbiddenSlots = new() },
+        //     new Task { Name = "Leitura", Difficulty = 2, CognitiveLoad = 3, Affinity = 5, WeeklyHours = 5, MaxRepetitions = 5, MaxDailyHours = 2, ForbiddenSlots = new() },
+        //     new Task { Name = "Trabalho", Difficulty = 5, CognitiveLoad = 5, Affinity = 3, WeeklyHours = 10, MaxRepetitions = 5, MaxDailyHours = 3, ForbiddenSlots = new() }
+        // };
 
-        GeneticScheduler scheduler = new(tasks);
-        Schedule bestSchedule = scheduler.Run();
+        // GeneticScheduler scheduler = new(tasks);
+        // Schedule bestSchedule = scheduler.Run();
 
-        scheduler.PrintSchedule(bestSchedule);
+        // scheduler.PrintSchedule(bestSchedule);
 
         // foreach (var kv in bestSchedule.WeeklySchedule)
         // {
         //     Console.WriteLine($"Dia {kv.Key.Day}, Slot {kv.Key.TimeSlot}: {kv.Value.Name}");
         // }
+
+        var config = new ConfiguracaoEscala
+        {
+            DiasDaSemana = new List<DayOfWeek> {
+                    DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+                    DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday
+                },
+            HorariosDiarios = Enumerable.Range(8, 14) // Das 8h às 17h (10 horários)
+                    .Select(h => TimeSpan.FromHours(h))
+                    .ToList(),
+            Funcionarios = new List<Funcionario> {
+                    new Funcionario { Id = 1, Cargo = "Atendente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 2, Cargo = "Atendente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 3, Cargo = "Atendente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 4, Cargo = "Atendente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 5, Cargo = "Atendente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 6, Cargo = "Supervisor", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 7, Cargo = "Supervisor", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday } },
+                    new Funcionario { Id = 8, Cargo = "Gerente", DiasFolga = new List<DayOfWeek> { DayOfWeek.Sunday, DayOfWeek.Saturday } }
+                },
+            RequisitosPorHorario = new Dictionary<string, (int Min, int Max)>
+            {
+                ["Atendente"] = (2, 4),
+                ["Supervisor"] = (1, 2),
+                ["Gerente"] = (0, 1)
+            },
+            HorasDiariasPorFuncionario = 8,
+            DiasTrabalhadosPorSemana = 5,
+            TamanhoPopulacao = 100,
+            NumeroGeracoes = 1000,
+            TaxaMutacao = 0.1
+        };
+
+        var organizador = new OrganizadorEscalaSemanalGenetico(config);
+        var melhorEscala = organizador.EncontrarMelhorEscala();
+
+        Console.WriteLine("Melhor escala semanal com horários contínuos encontrada:");
+        Console.WriteLine(melhorEscala);
+
+        // Imprime a escala por funcionário
+        Console.WriteLine("\nEscala detalhada por funcionário:");
+        foreach (var func in config.Funcionarios.OrderBy(f => f.Cargo).ThenBy(f => f.Id))
+        {
+            Console.WriteLine($"\nFuncionário {func.Id} ({func.Cargo}):");
+            var horariosFunc = melhorEscala.Alocacoes
+                .Where(a => a.Value.Contains(func))
+                .Select(a => a.Key)
+                .GroupBy(a => a.Dia)
+                .OrderBy(g => g.Key);
+
+            foreach (var dia in horariosFunc)
+            {
+                var horarios = dia.Select(x => x.Horario).OrderBy(h => h).ToList();
+                var inicio = horarios.First();
+                var fim = horarios.Last().Add(TimeSpan.FromHours(1)); // +1 hora para mostrar o término
+                Console.WriteLine($"{dia.Key}: {inicio:hh\\:mm} às {fim:hh\\:mm}");
+            }
+        }
 
         return Ok("Ok");
     }
