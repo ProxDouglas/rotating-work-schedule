@@ -48,11 +48,11 @@ erDiagram
         integer maximum_consecutive_days
     }
 
-    operating_schedule_job {
+    <!-- operating_schedule_job {
         integer job_position_id PK
         integer operating_schedule_id PK
         integer branch_id FK
-    }
+    } -->
 
     employee {
         integer id PK

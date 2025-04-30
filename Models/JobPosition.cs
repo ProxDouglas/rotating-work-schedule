@@ -22,6 +22,6 @@ namespace rotating_work_schedule.Models
       // Relacionamento com Employee
       public ICollection<Employee> Employees { get; set; }
 
-      public ICollection<OperatingSchedule> OperatingSchedule { get; set; }
+      // public ICollection<OperatingSchedule> OperatingSchedule { get; set; }
    }
 }

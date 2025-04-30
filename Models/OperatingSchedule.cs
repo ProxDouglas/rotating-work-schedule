@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using RotatingWorkSchedule.Enums;
 
 namespace rotating_work_schedule.Models
 {
@@ -16,10 +15,10 @@ namespace rotating_work_schedule.Models
       public TimeSpan End { get; set; }
 
       [Required] // Campo obrigatório
-      public DayOfWeek DayOfWeek { get; set; }
+      public DayOperating DayOperating { get; set; }
 
       public DateTime? Canceled { get; set; } // Pode ser nulo
 
-      public ICollection<JobPosition> JobPosition { get; set; }
+      // public ICollection<JobPosition> JobPosition { get; set; }
    }
 }

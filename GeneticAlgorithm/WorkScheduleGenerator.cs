@@ -11,19 +11,21 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private const int PopulationSize = 100;
       private const int LocalPopulation = 5;
       private int Days = 1;
+      private WorkDay[] WorkDays;
       private readonly Random random = new Random();
       private int columnsSize = 0;
       private int rowsSize = 0;
       public List<Chromosome> population = new List<Chromosome>();
       private DateTime startDate;
 
-      public WorkScheduleGenerator(Employee[] employees, OperatingSchedule[] operatingSchedules, DateTime? startDate = null)
+      public WorkScheduleGenerator(Employee[] employees, OperatingSchedule[] operatingSchedules, WorkDay[] workDays)
       {
-         Employees = employees.OrderBy(emp => emp?.JobPosition?.Id).ToArray();
-         OperatingSchedule = operatingSchedules.OrderBy(os => os.DayOfWeek).ToArray();
+         this.Employees = employees.OrderBy(emp => emp?.JobPosition?.Id).ToArray();
+         this.OperatingSchedule = operatingSchedules.OrderBy(os => os.DayOperating).ToArray();
+         this.WorkDays = workDays.OrderBy(os => os.EffectiveDate).ToArray();
          this.rowsSize = this.Employees.Count();
-         this.columnsSize = this.Days * 24 * 2;
-         this.startDate = startDate ?? DateTime.Now;
+         this.columnsSize = this.WorkDays.Count() * 24 * 2;
+         this.startDate = this.WorkDays[0].EffectiveDate;
       }
 
       private int GetMaxFitnees()
@@ -41,12 +43,13 @@ namespace rotating_work_schedule.GeneticAlgorithm
          return this.population.OrderByDescending(c => FitnessFunction(c)).Take(3).Select(c => c.Gene).ToList();
       }
 
-      private DayOfWeek getDayOfWeekFromColumn(int column)
+      private WorkDay? GetDateAndWorkDayFromColumn(int column)
       {
          int totalMinutes = column * 30;
          int daysOffset = totalMinutes / (24 * 60);
          DateTime currentDate = startDate.AddDays(daysOffset);
-         return currentDate.DayOfWeek;
+
+         return WorkDays.FirstOrDefault(wd => wd.EffectiveDate.Date == currentDate.Date);
       }
 
       private TimeSpan CalculateTime(int column)
@@ -59,9 +62,17 @@ namespace rotating_work_schedule.GeneticAlgorithm
          return new TimeSpan(hour, minute, 0);
       }
 
+      private int GetColumnFromDateTime(DateTime date, TimeSpan time)
+      {
+         int daysOffset = (date.Date - startDate.Date).Days;
+         int totalMinutes = (daysOffset * 24 * 60) + (time.Hours * 60) + time.Minutes;
+         return totalMinutes / 30;
+      }
+
       private Boolean IsWithinWorkingHours(int column)
       {
-         OperatingSchedule schedule = OperatingSchedule[(int)getDayOfWeekFromColumn(column)];
+         WorkDay? WorkDays = GetDateAndWorkDayFromColumn(column);
+         OperatingSchedule schedule = WorkDays.OperatingSchedule;
 
          if (schedule != null)
          {
@@ -166,44 +177,27 @@ namespace rotating_work_schedule.GeneticAlgorithm
       private Chromosome generateChromosome()
       {
          Chromosome chromosome = new Chromosome(rowsSize, columnsSize);
-         // int group = -1;
 
          for (int row = 0; row < this.rowsSize; row++)
          {
-            // group = -1;
+            int workload = this.Employees[row].JobPosition?.Workload ?? 0; // Workload in hours
+            int totalSlots = workload * 2; // Convert hours to 30-minute slots
 
-            for (int column = 0; column < this.columnsSize; column++)
+            for (int day = 0; day < this.WorkDays.Count(); day++)
             {
-               bool isWorkingHour = IsWithinWorkingHours(column);
+               WorkDay dayWork = this.WorkDays[day];
+               OperatingSchedule schedule = dayWork.OperatingSchedule;
+               // Calculate the start and end columns for the current day
+               int startColumn = GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
+               int endColumn = GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
+               int limitSlot = endColumn - workload;
 
-               if (isWorkingHour)
-               {
-                  chromosome.Gene[row, column] = random.Next(0, 2);
-               }
-               else
-               {
-                  chromosome.Gene[row, column] = 0;
-               }
+               int startSlot = random.Next(startColumn, limitSlot + 1); // Randomly select a column within the working hours
 
-               // if (group > -1 && isWorkingHour)
-               // {
-               //    chromosome.Gene[row, column] = 1;
-               //    group++;
-               //    if (group == 4)
-               //    {
-               //       group = -1;
-               //    }
-               // }
-               // else if (isWorkingHour)
-               // {
-               //    chromosome.Gene[row, column] = random.Next(0, 2);
-               //    if (chromosome.Gene[row, column] == 1)
-               //       group++;
-               // }
-               // else
-               // {
-               //    chromosome.Gene[row, column] = 0;
-               // }
+               for (int column = startSlot; column < startSlot + totalSlots && column < endColumn; column++)
+               {
+                  chromosome.Gene[row, column] = 1;
+               }
             }
          }
 
@@ -214,41 +208,32 @@ namespace rotating_work_schedule.GeneticAlgorithm
       {
          for (int row = 0; row < rowsSize; row++)
          {
-            for (int column = 0; column < columnsSize; column++)
+            int workload = this.Employees[row].JobPosition?.Workload ?? 0; // Workload in hours
+            int totalSlots = workload * 2; // Convert hours to 30-minute slots
+
+            for (int day = 0; day < this.WorkDays.Count(); day++)
             {
-               if (this.IsWithinWorkingHours(column) && random.NextDouble() < MutationRate)
+               if (random.NextDouble() < MutationRate)
                {
-                  // if (chromosome.Gene[row, column] == 0)
-                  // {
-                  //    if (column < columnsSize && chromosome.Gene[row, column + 1] == 1)
-                  //    {
-                  //       chromosome.Gene[row, column] = 1;
-                  //    }
-                  //    else if (column > 0 && chromosome.Gene[row, column - 1] == 1)
-                  //    {
-                  //       chromosome.Gene[row, column] = 1;
-                  //    }
-                  //    else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 0 && chromosome.Gene[row, column + 1] == 0)
-                  //    {
-                  //       chromosome.Gene[row, column] = 0;
-                  //    }
-                  // }
-                  // else if (chromosome.Gene[row, column] == 1)
-                  // {
-                  //    if (column < columnsSize && chromosome.Gene[row, column + 1] == 0)
-                  //    {
-                  //       chromosome.Gene[row, column] = 0;
-                  //    }
-                  //    else if (column > 0 && chromosome.Gene[row, column - 1] == 0)
-                  //    {
-                  //       chromosome.Gene[row, column] = 0;
-                  //    }
-                  //    else if (column > 0 && column < columnsSize && chromosome.Gene[row, column - 1] == 1 && chromosome.Gene[row, column + 1] == 1)
-                  //    {
-                  //       chromosome.Gene[row, column] = 1;
-                  //    }
-                  // }
-                  chromosome.Gene[row, column] = chromosome.Gene[row, column] == 0 ? 1 : 0;
+
+                  WorkDay dayWork = this.WorkDays[day];
+                  OperatingSchedule schedule = dayWork.OperatingSchedule;
+                  // Calculate the start and end columns for the current day
+                  int startColumn = GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
+                  int endColumn = GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
+                  int limitSlot = endColumn - workload;
+
+                  int startSlot = random.Next(startColumn, limitSlot + 1); // Randomly select a column within the working hours
+
+                  for (int column = startColumn; column < endColumn; column++)
+                  {
+                     chromosome.Gene[row, column] = 0;
+                  }
+
+                  for (int column = startSlot; column < startSlot + totalSlots && column < endColumn; column++)
+                  {
+                     chromosome.Gene[row, column] = 1;
+                  }
                }
             }
          }
