@@ -14,22 +14,33 @@ public class WorkScheduleGeneratorController() : ControllerBase
     public async Task<IActionResult> GetAll()
     {
 
-        JobPosition jobPosition = new JobPosition { Id = 1, Name = "Caixa", Workload = 9, MaximumConsecutiveDays = 6 };
-        JobPosition jobPosition2 = new JobPosition { Id = 2, Name = "Repositor", Workload = 9, MaximumConsecutiveDays = 6 };
-        JobPosition jobPosition3 = new JobPosition { Id = 3, Name = "Supervisor", Workload = 9, MaximumConsecutiveDays = 6 };
-        JobPosition jobPosition4 = new JobPosition { Id = 4, Name = "Estoquista", Workload = 9, MaximumConsecutiveDays = 6 };
+        JobPosition caixa = new JobPosition { Id = 1, Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
+        // JobPosition repositor = new JobPosition { Id = 2, Name = "Repositor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
+        // JobPosition supervisor = new JobPosition { Id = 3, Name = "Supervisor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 0 };
+        // JobPosition estoquista = new JobPosition { Id = 4, Name = "Estoquista", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
+
+        JobPosition[] jobPositions = new JobPosition[]
+        {
+            caixa,
+            // repositor,
+            // supervisor,
+            // estoquista
+        };
 
         // Unavailability unavailability = new Unavailability { Id = 1, EmployeeId = 1, Start = new DateTime(2025, 3, 17, 0, 0, 0), End = new DateTime(2025, 3, 17, 0, 0, 0), Reason = "Folga", EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), Validity = new DateTime(2025, 3, 17, 0, 0, 0) };
 
         Employee[] employees = new Employee[]
         {
-            new Employee { Id = 1, Name = "Employee 1", JobPosition = jobPosition },
-            new Employee { Id = 2, Name = "Employee 2", JobPosition = jobPosition },
-            new Employee { Id = 3, Name = "Employee 3", JobPosition = jobPosition },
-            new Employee { Id = 4, Name = "Employee 4", JobPosition = jobPosition3 },
-            new Employee { Id = 5, Name = "Employee 5", JobPosition = jobPosition2 },
-            new Employee { Id = 6, Name = "Employee 6", JobPosition = jobPosition2 },
-            new Employee { Id = 7, Name = "Employee 7", JobPosition = jobPosition4 }
+            new Employee { Id = 1, Name = "Employee 1", JobPosition = caixa },
+            new Employee { Id = 2, Name = "Employee 2", JobPosition = caixa },
+            new Employee { Id = 3, Name = "Employee 3", JobPosition = caixa },
+            // new Employee { Id = 4, Name = "Employee 4", JobPosition = supervisor },
+            // new Employee { Id = 5, Name = "Employee 5", JobPosition = repositor },
+            // new Employee { Id = 6, Name = "Employee 6", JobPosition = repositor },
+            // new Employee { Id = 7, Name = "Employee 7", JobPosition = repositor },
+            // new Employee { Id = 8, Name = "Employee 8", JobPosition = repositor },
+            // new Employee { Id = 9, Name = "Employee 9", JobPosition = estoquista },
+            // new Employee { Id = 10, Name = "Employee 10", JobPosition = estoquista },
         };
 
         OperatingSchedule[] operatingSchedules = new OperatingSchedule[]
@@ -49,23 +60,48 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new WorkDay { Id = 1, EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
             new WorkDay { Id = 2, EffectiveDate = new DateTime(2025, 3, 18, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
             new WorkDay { Id = 3, EffectiveDate = new DateTime(2025, 3, 19, 0, 0, 0), DayOperating = DayOperating.Tuesday, OperatingSchedule = operatingSchedules[2] },
-            new WorkDay { Id = 4 , EffectiveDate = new DateTime(2025 ,3 ,20 ,0 ,0 ,0) , DayOperating=DayOperating.Saturday , OperatingSchedule=operatingSchedules[3]},
+            new WorkDay { Id = 4, EffectiveDate = new DateTime(2025 ,3 ,20 ,0 ,0 ,0), DayOperating = DayOperating.Saturday , OperatingSchedule=operatingSchedules[3] },
             new WorkDay { Id = 5, EffectiveDate = new DateTime(2025, 3, 21, 0, 0, 0), DayOperating = DayOperating.Thursday, OperatingSchedule = operatingSchedules[4] },
             new WorkDay { Id = 6, EffectiveDate = new DateTime(2025, 3, 22, 0, 0, 0), DayOperating = DayOperating.Friday , OperatingSchedule = operatingSchedules[5] },
             new WorkDay { Id = 7, EffectiveDate = new DateTime(2025, 3, 23, 0, 0, 0), DayOperating = DayOperating.Wednesday, OperatingSchedule = operatingSchedules[6] },
+            new WorkDay { Id = 8, EffectiveDate = new DateTime(2025, 3, 24, 0, 0, 0), DayOperating = DayOperating.Holiday, OperatingSchedule = operatingSchedules[7] },
+            new WorkDay { Id = 9, EffectiveDate = new DateTime(2025, 3, 25, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
+            new WorkDay { Id = 10, EffectiveDate = new DateTime(2025, 3, 26, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
+            new WorkDay { Id = 11, EffectiveDate = new DateTime(2025, 3, 27, 0, 0, 0), DayOperating = DayOperating.Tuesday, OperatingSchedule = operatingSchedules[2] },
+            new WorkDay { Id = 12, EffectiveDate = new DateTime(2025, 3, 28, 0, 0, 0), DayOperating = DayOperating.Saturday, OperatingSchedule = operatingSchedules[3] },
+            new WorkDay { Id = 13, EffectiveDate = new DateTime(2025, 3, 29, 0, 0, 0), DayOperating = DayOperating.Thursday, OperatingSchedule = operatingSchedules[4] },
+            new WorkDay { Id = 14, EffectiveDate = new DateTime(2025, 3, 30, 0, 0, 0), DayOperating = DayOperating.Friday, OperatingSchedule = operatingSchedules[5] },
+            new WorkDay { Id = 15, EffectiveDate = new DateTime(2025, 3, 31, 0, 0, 0), DayOperating = DayOperating.Wednesday, OperatingSchedule = operatingSchedules[6] },
+            new WorkDay { Id = 16, EffectiveDate = new DateTime(2025, 4, 1, 0, 0, 0), DayOperating = DayOperating.Holiday, OperatingSchedule = operatingSchedules[7] },
+            new WorkDay { Id = 17, EffectiveDate = new DateTime(2025, 4, 2, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
+            new WorkDay { Id = 18, EffectiveDate = new DateTime(2025, 4, 3, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
+            new WorkDay { Id = 19, EffectiveDate = new DateTime(2025, 4, 4, 0, 0, 0), DayOperating = DayOperating.Tuesday, OperatingSchedule = operatingSchedules[2] },
+            new WorkDay { Id = 20, EffectiveDate = new DateTime(2025, 4, 5, 0, 0, 0), DayOperating = DayOperating.Saturday, OperatingSchedule = operatingSchedules[3] },
+            new WorkDay { Id = 21, EffectiveDate = new DateTime(2025, 4, 6, 0, 0, 0), DayOperating = DayOperating.Thursday, OperatingSchedule = operatingSchedules[4] },
+            new WorkDay { Id = 22, EffectiveDate = new DateTime(2025, 4, 7, 0, 0, 0), DayOperating = DayOperating.Friday, OperatingSchedule = operatingSchedules[5] },
+            new WorkDay { Id = 23, EffectiveDate = new DateTime(2025, 4, 8, 0, 0, 0), DayOperating = DayOperating.Wednesday, OperatingSchedule = operatingSchedules[6] },
+            new WorkDay { Id = 24, EffectiveDate = new DateTime(2025, 4, 9, 0, 0, 0), DayOperating = DayOperating.Holiday, OperatingSchedule = operatingSchedules[7] },
+            new WorkDay { Id = 25, EffectiveDate = new DateTime(2025, 4, 10, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
+            new WorkDay { Id = 26, EffectiveDate = new DateTime(2025, 4, 11, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
+            new WorkDay { Id = 27, EffectiveDate = new DateTime(2025, 4, 12, 0, 0, 0), DayOperating = DayOperating.Tuesday, OperatingSchedule = operatingSchedules[2] },
+            new WorkDay { Id = 28, EffectiveDate = new DateTime(2025, 4, 13, 0, 0, 0), DayOperating = DayOperating.Saturday, OperatingSchedule = operatingSchedules[3] },
+            new WorkDay { Id = 29, EffectiveDate = new DateTime(2025, 4, 14, 0, 0, 0), DayOperating = DayOperating.Thursday, OperatingSchedule = operatingSchedules[4] },
+            new WorkDay { Id = 30, EffectiveDate = new DateTime(2025, 4, 15, 0, 0, 0), DayOperating = DayOperating.Friday, OperatingSchedule = operatingSchedules[5] },
         };
 
         var configuration = new ConfigurationSchedule(
             employees,
+            jobPositions,
             operatingSchedules,
             workDay,
-            100
+            0
         );
 
         var workScheduleGenerator = new WorkScheduleGenerator(configuration);
         var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
-        workScheduleGenerator.printMatrix(bestSchedule.Gene);
+        // workScheduleGenerator.printMatrix(bestSchedule.Gene);
+        // workScheduleGenerator.printSchedule(bestSchedule.Gene);
         workScheduleGenerator.printMatrixList();
 
         // Exemplo de uso do algoritmo genético para escalas semanais

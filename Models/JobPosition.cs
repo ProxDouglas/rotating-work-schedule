@@ -19,8 +19,11 @@ namespace rotating_work_schedule.Models
       [Required] // Campo obrigatório
       public int MaximumConsecutiveDays { get; set; }
 
+      public int MaximumEmployees { get; set; }
+      public int MinimumEmployees { get; set; }
       // Relacionamento com Employee
       public ICollection<Employee> Employees { get; set; }
+      
 
       // public ICollection<OperatingSchedule> OperatingSchedule { get; set; }
    }
