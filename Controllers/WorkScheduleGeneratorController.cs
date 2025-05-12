@@ -14,33 +14,34 @@ public class WorkScheduleGeneratorController() : ControllerBase
     public async Task<IActionResult> GetAll()
     {
 
-        JobPosition caixa = new JobPosition { Id = 1, Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
-        // JobPosition repositor = new JobPosition { Id = 2, Name = "Repositor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
-        // JobPosition supervisor = new JobPosition { Id = 3, Name = "Supervisor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 0 };
-        // JobPosition estoquista = new JobPosition { Id = 4, Name = "Estoquista", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
+        JobPosition caixa = new JobPosition { Id = 1, Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
+        JobPosition repositor = new JobPosition { Id = 2, Name = "Repositor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
+        JobPosition supervisor = new JobPosition { Id = 3, Name = "Supervisor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 0 };
+        JobPosition estoquista = new JobPosition { Id = 4, Name = "Estoquista", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
 
         JobPosition[] jobPositions = new JobPosition[]
         {
             caixa,
-            // repositor,
-            // supervisor,
-            // estoquista
+            repositor,
+            supervisor,
+            estoquista
         };
 
         // Unavailability unavailability = new Unavailability { Id = 1, EmployeeId = 1, Start = new DateTime(2025, 3, 17, 0, 0, 0), End = new DateTime(2025, 3, 17, 0, 0, 0), Reason = "Folga", EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), Validity = new DateTime(2025, 3, 17, 0, 0, 0) };
 
         Employee[] employees = new Employee[]
         {
-            new Employee { Id = 1, Name = "Employee 1", JobPosition = caixa },
-            new Employee { Id = 2, Name = "Employee 2", JobPosition = caixa },
-            new Employee { Id = 3, Name = "Employee 3", JobPosition = caixa },
-            // new Employee { Id = 4, Name = "Employee 4", JobPosition = supervisor },
-            // new Employee { Id = 5, Name = "Employee 5", JobPosition = repositor },
-            // new Employee { Id = 6, Name = "Employee 6", JobPosition = repositor },
-            // new Employee { Id = 7, Name = "Employee 7", JobPosition = repositor },
-            // new Employee { Id = 8, Name = "Employee 8", JobPosition = repositor },
-            // new Employee { Id = 9, Name = "Employee 9", JobPosition = estoquista },
-            // new Employee { Id = 10, Name = "Employee 10", JobPosition = estoquista },
+            new Employee { Id = 1, Name = "Caixa 1", JobPosition = caixa },
+            new Employee { Id = 2, Name = "Caixa 2", JobPosition = caixa },
+            new Employee { Id = 3, Name = "Caixa 3", JobPosition = caixa },
+            new Employee { Id = 4, Name = "Caixa 4", JobPosition = caixa },
+            new Employee { Id = 20, Name = "Repositor 5", JobPosition = repositor },
+            new Employee { Id = 21, Name = "Repositor 6", JobPosition = repositor },
+            new Employee { Id = 22, Name = "Repositor 7", JobPosition = repositor },
+            new Employee { Id = 23, Name = "Repositor 8", JobPosition = repositor },
+            new Employee { Id = 30, Name = "Employee 4", JobPosition = supervisor },
+            new Employee { Id = 40, Name = "Estoquista 9", JobPosition = estoquista },
+            new Employee { Id = 41, Name = "Estoquista 10", JobPosition = estoquista },
         };
 
         OperatingSchedule[] operatingSchedules = new OperatingSchedule[]
@@ -55,7 +56,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new OperatingSchedule {Id = 7, Start = new TimeSpan(8, 0, 0), End = new TimeSpan(21, 0, 0), DayOperating = DayOperating.Holiday },
         };
 
-        WorkDay[] workDay = new WorkDay[]
+        WorkDay[] workDays = new WorkDay[]
         {
             new WorkDay { Id = 1, EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
             new WorkDay { Id = 2, EffectiveDate = new DateTime(2025, 3, 18, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
@@ -93,11 +94,12 @@ public class WorkScheduleGeneratorController() : ControllerBase
             employees,
             jobPositions,
             operatingSchedules,
-            workDay,
+            workDays,
             0
         );
 
         var workScheduleGenerator = new WorkScheduleGenerator(configuration);
+        var indisponibilidade = workScheduleGenerator.GenerateEmployeeDaysOff(employees.ToList(), workDays.ToList());
         var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
         // workScheduleGenerator.printMatrix(bestSchedule.Gene);

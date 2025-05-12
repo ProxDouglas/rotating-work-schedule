@@ -137,8 +137,8 @@ public class WorkScheduleGenerator
       // fitness += validateSameStartWorkingTask.Result;
       // fitness += validateJobPositionLimitsTask.Result;
 
-      fitness += this.InterruptDays(configuration, chromosome); 
-      fitness += this.ValidateSameStartWorking(configuration, chromosome); 
+      fitness += this.InterruptDays(configuration, chromosome);
+      fitness += this.ValidateSameStartWorking(configuration, chromosome);
       fitness += this.ValidateJobPositionLimits(configuration, chromosome) * 10;
 
       return fitness;
@@ -288,6 +288,85 @@ public class WorkScheduleGenerator
       return fitness;
    }
 
+
+
+   // public Dictionary<Employee, List<int>> GenerateRestDaysPerEmployee()
+   // {
+   //    var restDays = new Dictionary<Employee, List<int>>();
+   //    int totalDays = Configuration.WorkDays.Length;
+   //    int maxConsecutive = 6;
+
+   //    // Agrupa funcionários por JobPosition
+   //    var jobGroups = Configuration.Employees
+   //       .GroupBy(e => e.JobPosition!.Name)
+   //       .ToDictionary(g => g.Key, g => g.ToList());
+
+   //    foreach (var group in jobGroups)
+   //    {
+   //       int jobCount = group.Value.Count;
+   //       for (int i = 0; i < jobCount; i++)
+   //       {
+   //          var employee = group.Value[i];
+   //          var employeeRestDays = new List<int>();
+
+   //          // Considera indisponibilidades do funcionário
+   //          if (employee.Unavailabilities != null)
+   //          {
+   //             foreach (var un in employee.Unavailabilities)
+   //             {
+   //                // Marca todos os dias do período de indisponibilidade como folga
+   //                for (int day = 0; day < totalDays; day++)
+   //                {
+   //                   var workDay = Configuration.WorkDays[day];
+   //                   if (workDay.EffectiveDate.Date >= un.Start.Date && workDay.EffectiveDate.Date <= un.End.Date)
+   //                   {
+   //                      employeeRestDays.Add(day);
+   //                   }
+   //                }
+   //             }
+   //          }
+
+   //          // Garante que não exceda 6 dias seguidos
+   //          int lastRest = -maxConsecutive - 1;
+   //          employeeRestDays = employeeRestDays.Distinct().OrderBy(d => d).ToList();
+   //          int dayIndex = 0;
+   //          while (dayIndex < totalDays)
+   //          {
+   //             if (employeeRestDays.Contains(dayIndex))
+   //             {
+   //                lastRest = dayIndex;
+   //                dayIndex++;
+   //                continue;
+   //             }
+
+   //             if (dayIndex - lastRest > maxConsecutive)
+   //             {
+   //                // Offset para evitar folga de todos no mesmo dia
+   //                int offset = i % maxConsecutive;
+   //                int restDay = Math.Min(dayIndex + offset, totalDays - 1);
+
+   //                // Evita sobrepor folga já marcada
+   //                while (employeeRestDays.Contains(restDay) && restDay < totalDays - 1)
+   //                   restDay++;
+
+   //                employeeRestDays.Add(restDay);
+   //                lastRest = restDay;
+   //                dayIndex = restDay + 1;
+   //             }
+   //             else
+   //             {
+   //                dayIndex++;
+   //             }
+   //          }
+
+   //          employeeRestDays = employeeRestDays.Distinct().OrderBy(d => d).ToList();
+   //          restDays[employee] = employeeRestDays;
+   //       }
+   //    }
+
+   //    return restDays;
+   // }
+
    public void printMatrixList()
    {
       List<Chromosome> best = Configuration.Population.OrderByDescending(c => FitnessFunction(c)).Take(1).ToList();
@@ -368,5 +447,105 @@ public class WorkScheduleGenerator
          }
          Console.WriteLine();
       }
+   }
+
+   public Dictionary<Employee, List<WorkDay>> GenerateEmployeeDaysOff(
+        List<Employee> employees,
+        List<WorkDay> workDays)
+   {
+      // Ordenar os dias de trabalho por data
+      var sortedWorkDays = workDays.OrderBy(w => w.EffectiveDate).ToList();
+
+      // Dicionário para armazenar os dias de folga de cada funcionário
+      var employeeDaysOff = new Dictionary<Employee, List<WorkDay>>();
+
+      // Inicializar o dicionário para cada funcionário
+      foreach (var employee in employees)
+      {
+         employeeDaysOff[employee] = new List<WorkDay>();
+      }
+
+      // Agrupar funcionários por cargo
+      var employeesByPosition = employees.GroupBy(e => e.JobPosition.Id)
+                                       .ToDictionary(g => g.Key, g => g.ToList());
+
+      // Para cada dia de trabalho, distribuir as folgas
+      for (int i = 0; i < sortedWorkDays.Count; i++)
+      {
+
+
+         // Processar cada grupo de cargo separadamente
+         foreach (var positionGroup in employeesByPosition)
+         {
+            var positionEmployees = positionGroup.Value;
+            // var sameJobPi = CountEmployeesByJobPosition(JobPosition jobPosition, List<Employee> employees);
+            var maxSameDayOff = Math.Max(1, positionEmployees.Count / 3); // Máximo ~30% do grupo pode folgar junto
+
+            // Encontrar funcionários deste cargo que precisam de folga
+            var candidates = positionEmployees.Where(emp =>
+                NeedsDayOff(emp, employeeDaysOff, sortedWorkDays, i)).ToList();
+
+            // Se muitos precisam de folga, selecionar os que mais precisam
+            // if (candidates.Count > maxSameDayOff)
+            // {
+            //    candidates = candidates.OrderByDescending(emp =>
+            //        ConsecutiveWorkDays(emp, employeeDaysOff, sortedWorkDays, i))
+            //        .Take(maxSameDayOff)
+            //        .ToList();
+            // }
+
+            // Atribuir folgas
+            int candidateIndex = 0;
+            foreach (var employee in candidates)
+            {
+               // if (candidateIndex < maxSameDayOff)
+               // {
+               var currentDay = sortedWorkDays[i - candidateIndex];
+               employeeDaysOff[employee].Add(currentDay);
+               // }
+               candidateIndex++;
+            }
+         }
+      }
+
+      return employeeDaysOff;
+   }
+
+   private bool NeedsDayOff(
+       Employee employee,
+       Dictionary<Employee, List<WorkDay>> employeeDaysOff,
+       List<WorkDay> workDays,
+       int currentDayIndex)
+   {
+      // Verificar se o funcionário já trabalhou 6 dias consecutivos
+      var consecutiveDays = ConsecutiveWorkDays(employee, employeeDaysOff, workDays, currentDayIndex);
+      return consecutiveDays >= 7;
+   }
+
+   private int ConsecutiveWorkDays(
+       Employee employee,
+       Dictionary<Employee, List<WorkDay>> employeeDaysOff,
+       List<WorkDay> workDays,
+       int currentDayIndex)
+   {
+      int consecutiveDays = 0;
+
+      // Retroceder a partir do dia atual para contar dias trabalhados consecutivos
+      for (int i = currentDayIndex; i >= 0; i--)
+      {
+         var day = workDays[i];
+
+         // Se o funcionário está de folga neste dia, parar a contagem
+         if (employeeDaysOff[employee].Contains(day))
+            break;
+
+         consecutiveDays++;
+
+         // Parar após verificar 7 dias (o máximo que nos interessa)
+         if (consecutiveDays >= 7)
+            break;
+      }
+
+      return consecutiveDays;
    }
 }
