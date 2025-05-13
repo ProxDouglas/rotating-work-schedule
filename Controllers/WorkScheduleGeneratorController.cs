@@ -4,6 +4,7 @@ using rotating_work_schedule.Models;
 using rotating_work_schedule.GeneticAlgorithm;
 using rotating_work_schedule.GeneticAlgorithm2;
 using RotatingWorkSchedule.Enums;
+using rotating_work_schedule.GeneticAlgorithm.PrePocessing;
 
 [ApiController]
 [Route("api/workschedule")]
@@ -19,7 +20,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
         JobPosition supervisor = new JobPosition { Id = 3, Name = "Supervisor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 0 };
         JobPosition estoquista = new JobPosition { Id = 4, Name = "Estoquista", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
 
-        JobPosition[] jobPositions = new JobPosition[]
+        List<JobPosition> jobPositions = new List<JobPosition>
         {
             caixa,
             repositor,
@@ -29,7 +30,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
 
         // Unavailability unavailability = new Unavailability { Id = 1, EmployeeId = 1, Start = new DateTime(2025, 3, 17, 0, 0, 0), End = new DateTime(2025, 3, 17, 0, 0, 0), Reason = "Folga", EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), Validity = new DateTime(2025, 3, 17, 0, 0, 0) };
 
-        Employee[] employees = new Employee[]
+        List<Employee> employees = new List<Employee>
         {
             new Employee { Id = 1, Name = "Caixa 1", JobPosition = caixa },
             new Employee { Id = 2, Name = "Caixa 2", JobPosition = caixa },
@@ -44,7 +45,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new Employee { Id = 41, Name = "Estoquista 10", JobPosition = estoquista },
         };
 
-        OperatingSchedule[] operatingSchedules = new OperatingSchedule[]
+        List<OperatingSchedule> operatingSchedules = new List<OperatingSchedule>
         {
             new OperatingSchedule {Id = 1, Start = new TimeSpan(8, 0, 0), End = new TimeSpan(21, 0, 0), DayOperating = DayOperating.Sunday },
             new OperatingSchedule {Id = 2, Start = new TimeSpan(8, 0, 0), End = new TimeSpan(21, 0, 0), DayOperating = DayOperating.Monday },
@@ -56,7 +57,7 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new OperatingSchedule {Id = 7, Start = new TimeSpan(8, 0, 0), End = new TimeSpan(21, 0, 0), DayOperating = DayOperating.Holiday },
         };
 
-        WorkDay[] workDays = new WorkDay[]
+        List<WorkDay> workDays = new List<WorkDay>
         {
             new WorkDay { Id = 1, EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), DayOperating = DayOperating.Sunday, OperatingSchedule = operatingSchedules[0] },
             new WorkDay { Id = 2, EffectiveDate = new DateTime(2025, 3, 18, 0, 0, 0), DayOperating = DayOperating.Monday, OperatingSchedule = operatingSchedules[1] },
@@ -90,21 +91,45 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new WorkDay { Id = 30, EffectiveDate = new DateTime(2025, 4, 15, 0, 0, 0), DayOperating = DayOperating.Friday, OperatingSchedule = operatingSchedules[5] },
         };
 
-        var configuration = new ConfigurationSchedule(
+        var generateDayOff = new GenerateDayOff();
+        generateDayOff.Run(employees, workDays);
+
+        var tasks = workDays.Select(async workDay =>
+        {
+            var configuration = new ConfigurationSchedule(
             employees,
             jobPositions,
             operatingSchedules,
-            workDays,
+            [workDay],
             0
-        );
+            );
 
-        var workScheduleGenerator = new WorkScheduleGenerator(configuration);
-        var indisponibilidade = workScheduleGenerator.GenerateEmployeeDaysOff(employees.ToList(), workDays.ToList());
-        var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
+            var workScheduleGenerator = new WorkScheduleGenerator(configuration);
+            var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
-        // workScheduleGenerator.printMatrix(bestSchedule.Gene);
-        // workScheduleGenerator.printSchedule(bestSchedule.Gene);
-        workScheduleGenerator.printMatrixList();
+            // workScheduleGenerator.printMatrixList([bestSchedule]);
+            return bestSchedule;
+        }).ToList();
+
+        var schedules = await Task.WhenAll(tasks);
+
+        Chromosome bestSchedule = null;
+
+        foreach (var schedule in schedules)
+        {
+            if (bestSchedule == null)
+            {
+                bestSchedule = schedule;
+            }
+            else
+            {
+                bestSchedule.AppendColumnsFrom(schedule);
+            }
+        }
+
+        PrintConsole printConsole = new PrintConsole();
+        printConsole.printMatrixList([bestSchedule], employees, workDays[0].EffectiveDate, workDays);
+
 
         // Exemplo de uso do algoritmo genético para escalas semanais
         /*

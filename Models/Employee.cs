@@ -25,6 +25,8 @@ namespace rotating_work_schedule.Models
       [StringLength(100)] // Tamanho máximo de 100 caracteres
       public string? Email { get; set; }
 
+      public List<WorkDay> WorkOffs { get; set; } = new List<WorkDay>();// dias de folga
+
       // Relacionamento com Branch
       public Branch? Branch { get; set; }
 

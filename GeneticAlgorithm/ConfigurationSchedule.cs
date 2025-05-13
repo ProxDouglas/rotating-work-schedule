@@ -12,18 +12,24 @@ public class ConfigurationSchedule
    public int RowsSize { get; private set; }
    public DateTime StartDate { get; }
    public List<Chromosome> Population { get; set; } = new List<Chromosome>();
-   public Employee[] Employees { get; }
-   public JobPosition[] JobPositions { get; }
-   public OperatingSchedule[] OperatingSchedule { get; }
+   public List<Employee> Employees { get; }
+   public List<JobPosition> JobPositions { get; }
+   public List<OperatingSchedule> OperatingSchedule { get; }
    public WorkDay[] WorkDays { get; }
 
-   public ConfigurationSchedule(Employee[] employees, JobPosition[] jobPositions, OperatingSchedule[] operatingSchedule, WorkDay[] workDays, int generations)
+   public ConfigurationSchedule(
+      List<Employee> employees,
+      List<JobPosition> jobPositions,
+      List<OperatingSchedule> operatingSchedule,
+      WorkDay[] workDays,
+      int generations
+      )
    {
-      Employees = employees.OrderBy(emp => emp?.JobPosition?.Id).ToArray();
+      Employees = employees.OrderBy(emp => emp?.Branch?.Id).ToList();
       JobPositions = jobPositions;
-      OperatingSchedule = operatingSchedule.OrderBy(os => os.DayOperating).ToArray();
+      OperatingSchedule = operatingSchedule.OrderBy(os => os.DayOperating).ToList();
       WorkDays = workDays.OrderBy(os => os.EffectiveDate).ToArray();
-      RowsSize = Employees.Length;
+      RowsSize = Employees.Count;
       ColumnsSize = WorkDays.Length * 24 * 2;
       StartDate = WorkDays[0].EffectiveDate;
       if (generations > 0)

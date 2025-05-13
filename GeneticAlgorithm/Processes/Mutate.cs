@@ -7,6 +7,7 @@ public class Mutate
    {
       for (int row = 0; row < configuration.RowsSize; row++)
       {
+         var employee = configuration.Employees[row];
          int workload = configuration.Employees[row].JobPosition?.Workload ?? 0; // Workload in hours
          int totalSlots = workload * 2; // Convert hours to 30-minute slots
 
@@ -16,25 +17,34 @@ public class Mutate
             {
 
                WorkDay dayWork = configuration.WorkDays[day];
-               OperatingSchedule schedule = dayWork.OperatingSchedule;
-               // Calculate the start and end columns for the current day
-               int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
-               int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
-               int limitSlot = endColumn - totalSlots;
 
-               int startSlot = configuration.Random.Next(startColumn/2, limitSlot/2 + 1) * 2; // Randomly select a column within the working hours
+               // Verifica se o funcionário está indisponível neste dia
+               bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate.Date == dayWork.EffectiveDate.Date);
 
-               for (int column = startColumn; column < endColumn; column++)
-               {
-                  chromosome.Gene[row, column] = 0;
-               }
-
-               for (int column = startSlot; column < startSlot + totalSlots && column < endColumn; column++)
-               {
-                  chromosome.Gene[row, column] = 1;
-               }
+               if (!isUnavailable)
+                  this.FillDay(dayWork, chromosome, configuration, row, totalSlots);
             }
          }
+      }
+   }
+
+   private void FillDay(WorkDay dayWork, Chromosome chromosome, ConfigurationSchedule configuration, int row, int totalSlots)
+   {
+      OperatingSchedule schedule = dayWork.OperatingSchedule;
+      int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
+      int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
+      int limitSlot = endColumn - totalSlots;
+
+      int startSlot = configuration.Random.Next(startColumn / 2, limitSlot / 2 + 1) * 2;
+
+      for (int column = startColumn; column < endColumn; column++)
+      {
+         chromosome.Gene[row, column] = 0;
+      }
+
+      for (int column = startSlot; column < startSlot + totalSlots && column < endColumn; column++)
+      {
+         chromosome.Gene[row, column] = 1;
       }
    }
 }
