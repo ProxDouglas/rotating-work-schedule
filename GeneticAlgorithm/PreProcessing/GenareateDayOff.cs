@@ -4,9 +4,7 @@ namespace rotating_work_schedule.GeneticAlgorithm.PrePocessing;
 
 public class GenerateDayOff
 {
-   public List<Employee> Run(
-        List<Employee> employees,
-        List<WorkDay> workDays)
+   public List<Employee> Run(List<Employee> employees, List<WorkDay> workDays)
    {
       // Ordenar os dias de trabalho por data
       var sortedWorkDays = workDays.OrderBy(w => w.EffectiveDate).ToList();
@@ -31,31 +29,24 @@ public class GenerateDayOff
          foreach (var positionGroup in employeesByPosition)
          {
             var positionEmployees = positionGroup.Value;
-            // var sameJobPi = CountEmployeesByJobPosition(JobPosition jobPosition, List<Employee> employees);
-            var maxSameDayOff = Math.Max(1, positionEmployees.Count / 3); // Máximo ~30% do grupo pode folgar junto
 
             // Encontrar funcionários deste cargo que precisam de folga
             var candidates = positionEmployees.Where(emp =>
                 NeedsDayOff(emp, employeeDaysOff, sortedWorkDays, i)).ToList();
 
             // Se muitos precisam de folga, selecionar os que mais precisam
-            // if (candidates.Count > maxSameDayOff)
-            // {
-            //    candidates = candidates.OrderByDescending(emp =>
-            //        ConsecutiveWorkDays(emp, employeeDaysOff, sortedWorkDays, i))
-            //        .Take(maxSameDayOff)
-            //        .ToList();
-            // }
 
             // Atribuir folgas
             int candidateIndex = 0;
+            int dayOff = 0;
             foreach (var employee in candidates)
             {
-               // if (candidateIndex < maxSameDayOff)
-               // {
-               var currentDay = sortedWorkDays[i - candidateIndex];
+               var currentDay = sortedWorkDays[i - dayOff];
                employeeDaysOff[employee].Add(currentDay);
-               // }
+               if (candidateIndex > 0 && candidateIndex % this.CountDayOff(positionEmployees) == 0)
+               {
+                  dayOff++;
+               }
                candidateIndex++;
             }
          }
@@ -71,6 +62,14 @@ public class GenerateDayOff
       }
 
       return employees;
+   }
+
+   private int CountDayOff(List<Employee> positionEmployees)
+   {
+      int employeesWithDayOff = positionEmployees.Count() / 7;
+      if (positionEmployees.Count() % 7 > 0)
+         employeesWithDayOff++;
+      return employeesWithDayOff;
    }
 
    private bool NeedsDayOff(

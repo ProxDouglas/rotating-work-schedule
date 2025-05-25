@@ -11,11 +11,11 @@ using rotating_work_schedule.GeneticAlgorithm.PrePocessing;
 public class WorkScheduleGeneratorController() : ControllerBase
 {
 
-    [HttpGet]
+    [HttpPost]
     public async Task<IActionResult> GetAll()
     {
 
-        JobPosition caixa = new JobPosition { Id = 1, Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
+        JobPosition caixa = new JobPosition { Id = 1, Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 30, MinimumEmployees = 11 };
         JobPosition repositor = new JobPosition { Id = 2, Name = "Repositor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 4, MinimumEmployees = 2 };
         JobPosition supervisor = new JobPosition { Id = 3, Name = "Supervisor", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 0 };
         JobPosition estoquista = new JobPosition { Id = 4, Name = "Estoquista", Workload = 8, MaximumConsecutiveDays = 6, MaximumEmployees = 2, MinimumEmployees = 1 };
@@ -36,6 +36,32 @@ public class WorkScheduleGeneratorController() : ControllerBase
             new Employee { Id = 2, Name = "Caixa 2", JobPosition = caixa },
             new Employee { Id = 3, Name = "Caixa 3", JobPosition = caixa },
             new Employee { Id = 4, Name = "Caixa 4", JobPosition = caixa },
+            new Employee { Id = 5, Name = "Caixa 5", JobPosition = caixa },
+            new Employee { Id = 6, Name = "Caixa 6", JobPosition = caixa },
+            new Employee { Id = 7, Name = "Caixa 7", JobPosition = caixa },
+            new Employee { Id = 8, Name = "Caixa 8", JobPosition = caixa },
+            new Employee { Id = 9, Name = "Caixa 9", JobPosition = caixa },
+            new Employee { Id = 10, Name = "Caixa 10", JobPosition = caixa },
+            new Employee { Id = 11, Name = "Caixa 11", JobPosition = caixa },
+            new Employee { Id = 12, Name = "Caixa 12", JobPosition = caixa },
+            new Employee { Id = 13, Name = "Caixa 13", JobPosition = caixa },
+            new Employee { Id = 14, Name = "Caixa 14", JobPosition = caixa },
+            new Employee { Id = 15, Name = "Caixa 15", JobPosition = caixa },
+            new Employee { Id = 16, Name = "Caixa 16", JobPosition = caixa },
+            new Employee { Id = 17, Name = "Caixa 17", JobPosition = caixa },
+            new Employee { Id = 18, Name = "Caixa 18", JobPosition = caixa },
+            new Employee { Id = 19, Name = "Caixa 19", JobPosition = caixa },
+            new Employee { Id = 20, Name = "Caixa 20", JobPosition = caixa },
+            new Employee { Id = 21, Name = "Caixa 21", JobPosition = caixa },
+            new Employee { Id = 22, Name = "Caixa 22", JobPosition = caixa },
+            new Employee { Id = 23, Name = "Caixa 23", JobPosition = caixa },
+            new Employee { Id = 24, Name = "Caixa 24", JobPosition = caixa },
+            new Employee { Id = 25, Name = "Caixa 25", JobPosition = caixa },
+            new Employee { Id = 26, Name = "Caixa 26", JobPosition = caixa },
+            new Employee { Id = 27, Name = "Caixa 27", JobPosition = caixa },
+            new Employee { Id = 28, Name = "Caixa 28", JobPosition = caixa },
+            new Employee { Id = 29, Name = "Caixa 29", JobPosition = caixa },
+            new Employee { Id = 30, Name = "Caixa 30", JobPosition = caixa },
             new Employee { Id = 20, Name = "Repositor 5", JobPosition = repositor },
             new Employee { Id = 21, Name = "Repositor 6", JobPosition = repositor },
             new Employee { Id = 22, Name = "Repositor 7", JobPosition = repositor },

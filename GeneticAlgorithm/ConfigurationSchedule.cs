@@ -5,11 +5,13 @@ public class ConfigurationSchedule
 {
    public double MutationRate { get; } = 0.2;
    public int PopulationSize { get; private set; } = 100;
-   public int Generations { get; private set; } = 1000;
+   public int Generations { get; private set; } = 5000;
    public int MaxFitness { get; private set; } = 100000;
    public Random Random { get; } = new Random();
    public int ColumnsSize { get; private set; }
    public int RowsSize { get; private set; }
+
+   public int GenarationValue { get; set; } = 0;
    public DateTime StartDate { get; }
    public List<Chromosome> Population { get; set; } = new List<Chromosome>();
    public List<Employee> Employees { get; }

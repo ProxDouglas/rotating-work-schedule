@@ -3,9 +3,9 @@ namespace rotating_work_schedule.GeneticAlgorithm.Processes;
 using rotating_work_schedule.Models;
 public class GeneratePopulation
 {
-   public async Task<List<Chromosome>> Run(ConfigurationSchedule configuration)
+   public async Task<List<Chromosome>> Run(ConfigurationSchedule configuration, int size = 0)
    {
-      List<Task<Chromosome>> tasks = new List<Task<Chromosome>>(configuration.PopulationSize);
+      List<Task<Chromosome>> tasks = new List<Task<Chromosome>>(size > 0 ? size : configuration.PopulationSize);
 
       for (int p = 0; p < configuration.PopulationSize; p++)
       {
@@ -17,7 +17,7 @@ public class GeneratePopulation
       return [.. chromosomes];
    }
 
-   private Chromosome GenerateChromosome(ConfigurationSchedule configuration)
+   public Chromosome GenerateChromosome(ConfigurationSchedule configuration)
    {
       Chromosome chromosome = new Chromosome(configuration.RowsSize, configuration.ColumnsSize);
 

@@ -41,73 +41,117 @@ public class WorkScheduleGenerator
    public async Task<Chromosome> RunGeneticAlgorithmAsync()
    {
       this.Configuration.Population = await this.GeneratePopulation.Run(this.Configuration);
-      this.SortPopulation();
+      // this.SortPopulation();
 
       int generation = 0;
       // for (generation = 0; generation < Configuration.Generations && Configuration.Population[0].Fitness < Configuration.MaxFitness; generation++)
-      for (generation = 0; Configuration.Population[0].Fitness < Configuration.MaxFitness; generation++)
+      while (Configuration.Population[0].Fitness < Configuration.MaxFitness && generation < Configuration.Generations)
       {
+         await this.CalculationFitness(Configuration);
+         Configuration.Population = await EvolveGeneration(Configuration, generation);
 
-         Configuration.Population = EvolveGeneration(Configuration);
+         // if (generation % 100 == 0)
+         // {
+         //    Console.WriteLine($"Generation {generation}: Best fitness = {Configuration.Population[0].Fitness}");
+         // }
 
-         if (generation % 100 == 0)
-         {
-            Console.WriteLine($"Generation {generation}: Best fitness = {Configuration.Population[0].Fitness}");
-         }
-
+         generation++;
+         Configuration.GenarationValue = generation;
       }
-      Console.WriteLine("==========================");
-      Console.WriteLine("Generation finalizada: " + generation);
-      Console.WriteLine("==========================");
+      // Console.WriteLine("==========================");
+      // Console.WriteLine("Generation finalizada: " + generation);
+      // Console.WriteLine("==========================");
 
-      Chromosome bestChromosome = Configuration.Population.OrderByDescending(c => FitnessFunction(c)).FirstOrDefault();
+      Chromosome bestChromosome = Configuration.Population.OrderByDescending(c => FitnessFunction(c)).First();
+      // PrintConsole printConsole = new PrintConsole();
+      // printConsole.printMatrixList(Configuration.Population.OrderByDescending(c => FitnessFunction(c)).Take(1).ToList(), Configuration.Employees, Configuration.WorkDays[0].EffectiveDate, Configuration.WorkDays.ToList());
       return bestChromosome;
    }
 
-   private List<Chromosome> EvolveGeneration(ConfigurationSchedule configuration)
+   private async Task CalculationFitness(ConfigurationSchedule configuration)
+   {
+      var tasks = configuration.Population.Select(chromosome => Task.Run(() => FitnessFunction(chromosome)));
+      await Task.WhenAll(tasks);
+   }
+
+   private async Task<List<Chromosome>> EvolveGeneration(ConfigurationSchedule configuration, int generation)
    {
       var newPopulation = new List<Chromosome>(configuration.PopulationSize);
 
       // Elitism: keeps the top 10% of individuals
-      var bestIndividuals = configuration.Population.OrderByDescending(c => FitnessFunction(c)).Take(configuration.PopulationSize / 10).ToList();
+      var bestIndividuals = configuration.Population.OrderByDescending(c => c.Fitness).Take(10).ToList();
       newPopulation.AddRange(bestIndividuals.Select(c => c.Clone()));
 
       var tasks = new List<Task<Chromosome>>();
 
       while (newPopulation.Count + tasks.Count < configuration.PopulationSize)
       {
-         tasks.Add(Task.Run(() =>
-         {
-            // Select parents using tournament selection
-            var parent1 = TournamentSelection(configuration.Population);
-            var parent2 = TournamentSelection(configuration.Population);
 
-            // Crossover
-            var child = CrossOver.Run(configuration, parent1, parent2);
+         var child = Task.Run(() => GenarateChild(configuration, generation));
+         tasks.Add(child);
 
-            // Mutation
-            this.Mutate.Run(configuration, child);
-
-            // Evaluate fitness
-            FitnessFunction(child);
-
-            return child;
-         }));
+         // var child = await GenarateChild(configuration, generation);
+         // newPopulation.Add(child);
       }
 
       if (tasks.Count > 0)
       {
-         var children = Task.WhenAll(tasks).GetAwaiter().GetResult();
+         var children = await Task.WhenAll(tasks);
          newPopulation.AddRange(children);
       }
 
       return newPopulation;
    }
 
+   private Chromosome GenarateChild(ConfigurationSchedule configuration, int generation)
+   {
+      // Select parents using tournament selection
+      var parent1 = TournamentSelection(configuration.Population);
+      var parent2 = TournamentSelection(configuration.Population);
+
+      // Crossover
+      Chromosome child = CrossOver.Run(configuration, parent1, parent2);
+      var childClone = child.Clone();
+
+      // Mutation
+      this.Mutate.Run(configuration, childClone);
+
+      // Evaluate fitness
+      FitnessFunction(child);
+      FitnessFunction(childClone);
+
+      if (childClone.Fitness > child.Fitness)
+      {
+         child = childClone;
+      }
+      else if (childClone.Fitness == child.Fitness && (child.Fitness > parent1.Fitness || child.Fitness > parent2.Fitness))
+      {
+         child = childClone;
+      }
+      else if (childClone.Fitness == child.Fitness && child.Fitness > parent1.Fitness && child.Fitness > parent2.Fitness)
+      {
+         // newPopulation.Add(childClone);
+         child = childClone;
+      }
+      else
+      {
+         var newCromosome = this.GeneratePopulation.GenerateChromosome(configuration);
+         FitnessFunction(newCromosome);
+         child = newCromosome;
+      }
+
+      return child;
+   }
+
    private Chromosome TournamentSelection(List<Chromosome> populacao)
    {
-      var torneio = populacao.OrderBy(x => Configuration.Random.Next()).Take(5).ToList();
-      return torneio.OrderByDescending(e => e.Fitness).First().Clone();
+      List<Chromosome> tornament = [];
+      for (int i = 0; i < 3; i++)
+      {
+         int randomIndex = Configuration.Random.Next(0, populacao.Count);
+         tornament.Add(populacao[randomIndex]);
+      }
+      return tornament.OrderByDescending(e => e.Fitness).First().Clone();
    }
 
    private int FitnessFunction(Chromosome chromosome)
@@ -127,7 +171,6 @@ public class WorkScheduleGenerator
 
       // var tasks = new List<Task<Chromosome>>();
 
-      // var interruptDaysTask = Task.Run(() => this.InterruptDays(configuration, chromosome));
       // var validateSameStartWorkingTask = Task.Run(() => this.ValidateSameStartWorking(configuration, chromosome));
       // var validateJobPositionLimitsTask = Task.Run(() => this.ValidateJobPositionLimits(configuration, chromosome));
 
@@ -137,49 +180,8 @@ public class WorkScheduleGenerator
       // fitness += validateSameStartWorkingTask.Result;
       // fitness += validateJobPositionLimitsTask.Result;
 
-      fitness += this.InterruptDays(configuration, chromosome);
-      fitness += this.ValidateSameStartWorking(configuration, chromosome);
+      // fitness += this.ValidateSameStartWorking(configuration, chromosome);
       fitness += this.ValidateJobPositionLimits(configuration, chromosome) * 10;
-
-      return fitness;
-   }
-
-   private int InterruptDays(ConfigurationSchedule configuration, Chromosome chromosome)
-   {
-      int fitness = 0;
-
-      //7 dias interruptos de trabalho
-      for (int row = 0; row < configuration.RowsSize; row++)
-      {
-         int successiveDays = 0;
-         Employee employee = configuration.Employees[row];
-
-         for (int days = 0; days < configuration.WorkDays.Count(); days++)
-         {
-            WorkDay dayWork = configuration.WorkDays[days];
-            OperatingSchedule schedule = dayWork.OperatingSchedule;
-            // Calculate the start and end columns for the current day
-            int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
-            int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
-
-            int column = startColumn;
-
-            while (column < endColumn && chromosome.Gene[row, column] == 0)
-            {
-               column++;
-            }
-
-            if (chromosome.Gene[row, column - 1] == 1 && column < endColumn)
-            {
-               successiveDays++; // Decrease fitness for each working hour within the schedule
-               if (successiveDays == employee.JobPosition.MaximumConsecutiveDays)
-               {
-                  fitness -= 20;
-                  successiveDays = 0;
-               }
-            }
-         }
-      }
 
       return fitness;
    }
@@ -294,7 +296,7 @@ public class WorkScheduleGenerator
                if (count < effeiveEmployeeCount)
                {
                   // Penaliza para cada funcionário abaixo do mínimo necessário
-                  fitness -= jobPosition.Workload * 2 * 3;
+                  fitness -= (effeiveEmployeeCount - count) * 2 * 3;
                }
             }
          }
