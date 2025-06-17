@@ -44,27 +44,24 @@ public class WorkScheduleGenerator
       // this.SortPopulation();
 
       int generation = 0;
-      // for (generation = 0; generation < Configuration.Generations && Configuration.Population[0].Fitness < Configuration.MaxFitness; generation++)
       while (Configuration.Population[0].Fitness < Configuration.MaxFitness && generation < Configuration.Generations)
       {
          await this.CalculationFitness(Configuration);
          Configuration.Population = await EvolveGeneration(Configuration, generation);
 
-         // if (generation % 100 == 0)
-         // {
-         //    Console.WriteLine($"Generation {generation}: Best fitness = {Configuration.Population[0].Fitness}");
-         // }
+         if (generation % 20 == 0)
+         {
+            Console.WriteLine($"Generation {generation}: Best fitness = {Configuration.Population[0].Fitness}");
+         }
 
          generation++;
          Configuration.GenarationValue = generation;
       }
-      // Console.WriteLine("==========================");
-      // Console.WriteLine("Generation finalizada: " + generation);
-      // Console.WriteLine("==========================");
+      Console.WriteLine("==========================");
+      Console.WriteLine("Finished generation: " + generation);
+      Console.WriteLine("==========================");
 
       Chromosome bestChromosome = Configuration.Population.OrderByDescending(c => FitnessFunction(c)).First();
-      // PrintConsole printConsole = new PrintConsole();
-      // printConsole.printMatrixList(Configuration.Population.OrderByDescending(c => FitnessFunction(c)).Take(1).ToList(), Configuration.Employees, Configuration.WorkDays[0].EffectiveDate, Configuration.WorkDays.ToList());
       return bestChromosome;
    }
 
@@ -80,7 +77,7 @@ public class WorkScheduleGenerator
 
       // Elitism: keeps the top 10% of individuals
       var bestIndividuals = configuration.Population.OrderByDescending(c => c.Fitness).Take(10).ToList();
-      newPopulation.AddRange(bestIndividuals.Select(c => c.Clone()));
+      newPopulation.AddRange(bestIndividuals.Select(c => c));
 
       var tasks = new List<Task<Chromosome>>();
 
@@ -90,7 +87,7 @@ public class WorkScheduleGenerator
          var child = Task.Run(() => GenarateChild(configuration, generation));
          tasks.Add(child);
 
-         // var child = await GenarateChild(configuration, generation);
+         // var child = GenarateChild(configuration, generation);
          // newPopulation.Add(child);
       }
 
@@ -111,34 +108,35 @@ public class WorkScheduleGenerator
 
       // Crossover
       Chromosome child = CrossOver.Run(configuration, parent1, parent2);
-      var childClone = child.Clone();
+      // var childClone = child.Clone();
 
       // Mutation
-      this.Mutate.Run(configuration, childClone);
+      this.Mutate.Run(configuration, child);
+      // this.Mutate.Run(configuration, childClone);
 
       // Evaluate fitness
       FitnessFunction(child);
-      FitnessFunction(childClone);
+      // FitnessFunction(childClone);
 
-      if (childClone.Fitness > child.Fitness)
-      {
-         child = childClone;
-      }
-      else if (childClone.Fitness == child.Fitness && (child.Fitness > parent1.Fitness || child.Fitness > parent2.Fitness))
-      {
-         child = childClone;
-      }
-      else if (childClone.Fitness == child.Fitness && child.Fitness > parent1.Fitness && child.Fitness > parent2.Fitness)
-      {
-         // newPopulation.Add(childClone);
-         child = childClone;
-      }
-      else
-      {
-         var newCromosome = this.GeneratePopulation.GenerateChromosome(configuration);
-         FitnessFunction(newCromosome);
-         child = newCromosome;
-      }
+      // if (childClone.Fitness > child.Fitness)
+      // {
+      //    child = childClone;
+      // }
+      // else if (childClone.Fitness == child.Fitness && (child.Fitness > parent1.Fitness || child.Fitness > parent2.Fitness))
+      // {
+      //    child = childClone;
+      // }
+      // else if (childClone.Fitness == child.Fitness && child.Fitness > parent1.Fitness && child.Fitness > parent2.Fitness)
+      // {
+      //    // newPopulation.Add(childClone);
+      //    child = childClone;
+      // }
+      // else
+      // {
+      //    var newCromosome = this.GeneratePopulation.GenerateChromosome(configuration);
+      //    FitnessFunction(newCromosome);
+      //    child = newCromosome;
+      // }
 
       return child;
    }
@@ -151,7 +149,7 @@ public class WorkScheduleGenerator
          int randomIndex = Configuration.Random.Next(0, populacao.Count);
          tornament.Add(populacao[randomIndex]);
       }
-      return tornament.OrderByDescending(e => e.Fitness).First().Clone();
+      return tornament.OrderByDescending(e => e.Fitness).First();
    }
 
    private int FitnessFunction(Chromosome chromosome)
@@ -244,63 +242,64 @@ public class WorkScheduleGenerator
    private int ValidateJobPositionLimits(ConfigurationSchedule configuration, Chromosome chromosome)
    {
       int fitness = 0;
+      int workDaysCount = configuration.WorkDays.Count();
+      int rowsSize = configuration.RowsSize;
+      var employees = configuration.Employees;
+      var jobPositions = configuration.JobPositions;
 
-      for (int day = 0; day < configuration.WorkDays.Count(); day++)
+      // Pré-calcula os funcionários por JobPosition
+      var jobPositionToEmployees = employees
+         .GroupBy(e => e.JobPosition.Name)
+         .ToDictionary(g => g.Key, g => g.ToList());
+
+      // Pré-calcula os funcionários de folga por dia e JobPosition
+      var dayJobPositionOffCounts = new Dictionary<(DateTime, string), int>();
+      foreach (var dayWork in configuration.WorkDays)
       {
-         WorkDay dayWork = configuration.WorkDays[day];
-         OperatingSchedule schedule = dayWork.OperatingSchedule;
+         foreach (var jobPosition in jobPositions)
+         {
+            int offCount = jobPositionToEmployees[jobPosition.Name]
+               .Count(e => e.WorkOffs.Any(wd => wd.EffectiveDate == dayWork.EffectiveDate));
+            dayJobPositionOffCounts[(dayWork.EffectiveDate, jobPosition.Name)] = offCount;
+         }
+      }
 
-         // Calculate the start and end columns for the current day
+      for (int day = 0; day < workDaysCount; day++)
+      {
+         var dayWork = configuration.WorkDays[day];
+         var schedule = dayWork.OperatingSchedule;
          int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
          int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
 
-         for (int column = startColumn; column < endColumn; column++)
+         // Para cada coluna, conta os funcionários trabalhando por JobPosition
+         for (int column = startColumn; column < endColumn; column+= 2)
          {
             var jobPositionCounts = new Dictionary<string, int>();
-            var jobPositionEmployeesCounts = new Dictionary<string, int>();
 
-            //add the number of workers at the same time
-            for (int row = 0; row < configuration.RowsSize; row++)
+            for (int row = 0; row < rowsSize; row++)
             {
-               var jobPosition = configuration.Employees[row].JobPosition;
-
-               if (!jobPositionEmployeesCounts.ContainsKey(jobPosition.Name))
-                  jobPositionEmployeesCounts[jobPosition.Name] = 0;
-               jobPositionEmployeesCounts[jobPosition.Name]++;
-
                if (chromosome.Gene[row, column] == 1)
                {
-                  if (!jobPositionCounts.ContainsKey(jobPosition.Name))
-                     jobPositionCounts[jobPosition.Name] = 0;
-                  jobPositionCounts[jobPosition.Name]++;
+                  var jobPositionName = employees[row].JobPosition.Name;
+                  if (!jobPositionCounts.TryAdd(jobPositionName, 1))
+                     jobPositionCounts[jobPositionName]++;
                }
             }
 
-            foreach (var jobPosition in configuration.JobPositions)
+            foreach (var jobPosition in jobPositions)
             {
-               jobPositionEmployeesCounts.TryGetValue(jobPosition.Name, out int countEmployees);
+               int totalEmployees = jobPositionToEmployees[jobPosition.Name].Count;
+               int offCount = dayJobPositionOffCounts[(dayWork.EffectiveDate, jobPosition.Name)];
+               int effectiveEmployeeCount = (totalEmployees - offCount) / 2;
+
                jobPositionCounts.TryGetValue(jobPosition.Name, out int count);
 
-               // Conta quantos colaboradores desse jobPosition estão de folga neste turno
-               int offCount = 0;
-               foreach (var employee in configuration.Employees.Where(e => e.JobPosition.Name == jobPosition.Name))
+               if (count < effectiveEmployeeCount)
                {
-                  if (employee.WorkOffs.Any(wd => wd.EffectiveDate == dayWork.EffectiveDate))
-                  {
-                     offCount++;
-                  }
-               }
-
-               int effeiveEmployeeCount = (countEmployees - offCount) / 2;
-
-               if (count < effeiveEmployeeCount)
-               {
-                  // Penaliza para cada funcionário abaixo do mínimo necessário
-                  fitness -= (effeiveEmployeeCount - count) * 2 * 3;
+                  fitness -= (effectiveEmployeeCount - count) * 6;
                }
             }
          }
-
       }
 
       return fitness;

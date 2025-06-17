@@ -1,4 +1,5 @@
 namespace rotating_work_schedule.Controllers;
+
 using Microsoft.AspNetCore.Mvc;
 using rotating_work_schedule.Models;
 using rotating_work_schedule.GeneticAlgorithm;
@@ -120,38 +121,49 @@ public class WorkScheduleGeneratorController() : ControllerBase
         var generateDayOff = new GenerateDayOff();
         generateDayOff.Run(employees, workDays);
 
-        var tasks = workDays.Select(async workDay =>
-        {
-            var configuration = new ConfigurationSchedule(
+        var configuration = new ConfigurationSchedule(
             employees,
             jobPositions,
             operatingSchedules,
-            [workDay],
+            workDays.ToArray(),
             0
             );
 
-            var workScheduleGenerator = new WorkScheduleGenerator(configuration);
-            var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
+        var workScheduleGenerator = new WorkScheduleGenerator(configuration);
+        var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
-            // workScheduleGenerator.printMatrixList([bestSchedule]);
-            return bestSchedule;
-        }).ToList();
+        // var tasks = workDays.Select(async workDay =>
+        // {
+        //     var configuration = new ConfigurationSchedule(
+        //     employees,
+        //     jobPositions,
+        //     operatingSchedules,
+        //     [workDay],
+        //     0
+        //     );
 
-        var schedules = await Task.WhenAll(tasks);
+        //     var workScheduleGenerator = new WorkScheduleGenerator(configuration);
+        //     var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
-        Chromosome bestSchedule = null;
+        //     // workScheduleGenerator.printMatrixList([bestSchedule]);
+        //     return bestSchedule;
+        // }).ToList();
 
-        foreach (var schedule in schedules)
-        {
-            if (bestSchedule == null)
-            {
-                bestSchedule = schedule;
-            }
-            else
-            {
-                bestSchedule.AppendColumnsFrom(schedule);
-            }
-        }
+        // var schedules = await Task.WhenAll(tasks);
+
+        // Chromosome bestSchedule = null;
+
+        // foreach (var schedule in schedules)
+        // {
+        //     if (bestSchedule == null)
+        //     {
+        //         bestSchedule = schedule;
+        //     }
+        //     else
+        //     {
+        //         bestSchedule.AppendColumnsFrom(schedule);
+        //     }
+        // }
 
         PrintConsole printConsole = new PrintConsole();
         printConsole.printMatrixList([bestSchedule], employees, workDays[0].EffectiveDate, workDays);
