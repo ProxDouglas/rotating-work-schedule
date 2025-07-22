@@ -5,9 +5,6 @@ namespace rotating_work_schedule.Models
 {
    public class WorkDay
    {
-      [Key] // PK
-      public int Id { get; set; }
-
       [Required]
       public DateTime EffectiveDate { get; set; }
 

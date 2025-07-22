@@ -4,7 +4,7 @@ using rotating_work_schedule.Models;
 public class ConfigurationSchedule
 {
    public double MutationRate { get; } = 0.2;
-   public int PopulationSize { get; private set; } = 100;
+   public int PopulationSize { get; private set; } = 20;
    public int Generations { get; private set; } = 5000;
    public int MaxFitness { get; private set; } = 100000;
    public Random Random { get; } = new Random();
@@ -27,7 +27,7 @@ public class ConfigurationSchedule
       int generations
       )
    {
-      Employees = employees.OrderBy(emp => emp?.Branch?.Id).ToList();
+      Employees = employees.OrderBy(emp => emp?.Name).ToList();
       JobPositions = jobPositions;
       OperatingSchedule = operatingSchedule.OrderBy(os => os.DayOperating).ToList();
       WorkDays = workDays.OrderBy(os => os.EffectiveDate).ToArray();

@@ -3,31 +3,6 @@ namespace rotating_work_schedule.GeneticAlgorithm.Processes;
 using rotating_work_schedule.Models;
 public class Mutate
 {
-   // public void Run(ConfigurationSchedule configuration, Chromosome chromosome)
-   // {
-   //    for (int row = 0; row < configuration.RowsSize; row++)
-   //    {
-   //       var employee = configuration.Employees[row];
-   //       int workload = configuration.Employees[row].JobPosition?.Workload ?? 0; // Workload in hours
-   //       int totalSlots = workload * 2; // Convert hours to 30-minute slots
-
-   //       for (int day = 0; day < configuration.WorkDays.Count(); day++)
-   //       {
-   //          if (configuration.Random.NextDouble() < configuration.MutationRate)
-   //          {
-
-   //             WorkDay dayWork = configuration.WorkDays[day];
-
-   //             // Verifica se o funcionário está indisponível neste dia
-   //             bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate.Date == dayWork.EffectiveDate.Date);
-
-   //             if (!isUnavailable)
-   //                this.FillDay(dayWork, chromosome, configuration, row, totalSlots);
-   //          }
-   //       }
-   //    }
-   // }
-
    public void Run(ConfigurationSchedule configuration, Chromosome chromosome)
    {
       // Seleciona aleatoriamente uma linha (funcionário)

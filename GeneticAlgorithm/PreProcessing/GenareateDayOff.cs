@@ -6,39 +6,25 @@ public class GenerateDayOff
 {
    public List<Employee> Run(List<Employee> employees, List<WorkDay> workDays)
    {
-      // Ordenar os dias de trabalho por data
+      int candidateIndex, dayOff = 0;
+
       var sortedWorkDays = workDays.OrderBy(w => w.EffectiveDate).ToList();
+      var employeeDaysOff = this.CreateDictionary(employees);
 
-      // Dicionário para armazenar os dias de folga de cada funcionário
-      var employeeDaysOff = new Dictionary<Employee, List<WorkDay>>();
+      var employeesByPosition = employees.GroupBy(e => e.JobPosition.Name)
+                                         .ToDictionary(g => g.Key, g => g.ToList());
 
-      // Inicializar o dicionário para cada funcionário
-      foreach (var employee in employees)
-      {
-         employeeDaysOff[employee] = new List<WorkDay>();
-      }
-
-      // Agrupar funcionários por cargo
-      var employeesByPosition = employees.GroupBy(e => e.JobPosition.Id)
-                                       .ToDictionary(g => g.Key, g => g.ToList());
-
-      // Para cada dia de trabalho, distribuir as folgas
       for (int i = 0; i < sortedWorkDays.Count; i++)
       {
-         // Processar cada grupo de cargo separadamente
          foreach (var positionGroup in employeesByPosition)
          {
             var positionEmployees = positionGroup.Value;
 
-            // Encontrar funcionários deste cargo que precisam de folga
             var candidates = positionEmployees.Where(emp =>
                 NeedsDayOff(emp, employeeDaysOff, sortedWorkDays, i)).ToList();
 
-            // Se muitos precisam de folga, selecionar os que mais precisam
-
-            // Atribuir folgas
-            int candidateIndex = 0;
-            int dayOff = 0;
+            candidateIndex = 0;
+            dayOff = 0;
             foreach (var employee in candidates)
             {
                var currentDay = sortedWorkDays[i - dayOff];
@@ -52,16 +38,45 @@ public class GenerateDayOff
          }
       }
 
-      // Atualizar a lista WorkOffs de cada funcionário com os dias de folga calculados
-      foreach (var employee in employees)
-      {
-         if (employeeDaysOff.TryGetValue(employee, out var daysOff))
-            employee.WorkOffs = new List<WorkDay>(daysOff);
-         else
-            employee.WorkOffs = new List<WorkDay>();
-      }
+      this.UpdateWorkOffs(employees, employeeDaysOff, sortedWorkDays);
 
       return employees;
+   }
+
+   private Dictionary<Employee, List<WorkDay>> CreateDictionary(List<Employee> employees)
+   {
+      var employeeDaysOff = new Dictionary<Employee, List<WorkDay>>();
+      foreach (var employee in employees)
+      {
+         employeeDaysOff[employee] = [];
+      }
+      return employeeDaysOff;
+   }
+
+   private void UpdateWorkOffs(List<Employee> employees, Dictionary<Employee, List<WorkDay>> employeeDaysOff, List<WorkDay> workDays)
+   {
+      foreach (var employee in employees)
+      {
+         var daysOff = employeeDaysOff.TryGetValue(employee, out var offs) ? offs : new List<WorkDay>();
+
+         // Adiciona os dias de Unavailability como folga
+         if (employee.Unavailabilities != null)
+         {
+            foreach (var unavailability in employee.Unavailabilities)
+            {
+               foreach (var day in workDays)
+               {
+                  if (day.EffectiveDate.Date >= unavailability.Start.Date && day.EffectiveDate.Date <= unavailability.End.Date)
+                  {
+                     if (!daysOff.Contains(day))
+                        daysOff.Add(day);
+                  }
+               }
+            }
+         }
+
+         employee.WorkOffs = [.. daysOff.OrderBy(d => d.EffectiveDate)];
+      }
    }
 
    private int CountDayOff(List<Employee> positionEmployees)
@@ -78,7 +93,7 @@ public class GenerateDayOff
        List<WorkDay> workDays,
        int currentDayIndex)
    {
-      // Verificar se o funcionário já trabalhou 6 dias consecutivos
+      // Considera Unavailabilities como dias de folga
       var consecutiveDays = ConsecutiveWorkDays(employee, employeeDaysOff, workDays, currentDayIndex);
       return consecutiveDays >= 7;
    }
@@ -91,18 +106,21 @@ public class GenerateDayOff
    {
       int consecutiveDays = 0;
 
-      // Retroceder a partir do dia atual para contar dias trabalhados consecutivos
       for (int i = currentDayIndex; i >= 0; i--)
       {
          var day = workDays[i];
 
-         // Se o funcionário está de folga neste dia, parar a contagem
-         if (employeeDaysOff[employee].Contains(day))
+         // Verifica se o funcionário está de folga ou indisponível neste dia
+         bool isDayOff = employeeDaysOff[employee].Contains(day);
+         bool isUnavailable = employee.Unavailabilities != null &&
+            employee.Unavailabilities.Any(u =>
+               day.EffectiveDate.Date >= u.Start.Date && day.EffectiveDate.Date <= u.End.Date);
+
+         if (isDayOff || isUnavailable)
             break;
 
          consecutiveDays++;
 
-         // Parar após verificar 7 dias (o máximo que nos interessa)
          if (consecutiveDays >= 7)
             break;
       }

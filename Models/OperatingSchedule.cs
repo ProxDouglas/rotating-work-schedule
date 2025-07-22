@@ -16,9 +16,5 @@ namespace rotating_work_schedule.Models
 
       [Required] // Campo obrigatório
       public DayOperating DayOperating { get; set; }
-
-      public DateTime? Canceled { get; set; } // Pode ser nulo
-
-      // public ICollection<JobPosition> JobPosition { get; set; }
    }
 }

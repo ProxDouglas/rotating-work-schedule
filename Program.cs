@@ -1,7 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using rotating_work_schedule.Database;
-using rotating_work_schedule.Repositorys;
-using YourNamespace.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,15 +8,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Configuração do banco de dados PostgreSQL
-var connectionString = builder.Configuration.GetConnectionString("DatabaseConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// Configuração de dependências
-builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 
 var app = builder.Build();
 
