@@ -33,7 +33,7 @@ public class Mutate
 
    private void FillDay(WorkDay dayWork, Chromosome chromosome, ConfigurationSchedule configuration, int row, int totalSlots)
    {
-      OperatingSchedule schedule = dayWork.OperatingSchedule;
+      OperatingSchedule schedule = configuration.GetOperatingScheduleByDay(dayWork.DayOperating);
       int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
       int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
       int limitSlot = endColumn - totalSlots;

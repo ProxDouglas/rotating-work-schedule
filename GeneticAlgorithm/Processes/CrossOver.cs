@@ -15,7 +15,7 @@ public class CrossOver
             var paiEscolhido = escolherDoPai1 ? parent1 : parent2;
 
             WorkDay dayWork = configuration.WorkDays[day];
-            OperatingSchedule schedule = dayWork.OperatingSchedule;
+            OperatingSchedule schedule = configuration.GetOperatingScheduleByDay(dayWork.DayOperating);
             // Calculate the start and end columns for the current day
             int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
             int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);

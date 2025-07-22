@@ -1,10 +1,12 @@
 namespace rotating_work_schedule.GeneticAlgorithm;
 
 using rotating_work_schedule.Models;
+using RotatingWorkSchedule.Enums;
+
 public class ConfigurationSchedule
 {
    public double MutationRate { get; } = 0.2;
-   public int PopulationSize { get; private set; } = 20;
+   public int PopulationSize { get; private set; } = 100;
    public int Generations { get; private set; } = 5000;
    public int MaxFitness { get; private set; } = 100000;
    public Random Random { get; } = new Random();
@@ -52,5 +54,10 @@ public class ConfigurationSchedule
       DateTime currentDate = this.StartDate.AddDays(daysOffset);
 
       return this.WorkDays.FirstOrDefault(wd => wd.EffectiveDate.Date == currentDate.Date);
+   }
+
+   public OperatingSchedule GetOperatingScheduleByDay(DayOperating dayOperating)
+   {
+      return OperatingSchedule.First(os => os.DayOperating == dayOperating);
    }
 }

@@ -5,9 +5,6 @@ namespace rotating_work_schedule.Models
 {
    public class OperatingSchedule
    {
-      [Key] // PK
-      public int Id { get; set; }
-
       [Required] // Campo obrigatório
       public TimeSpan Start { get; set; }
 

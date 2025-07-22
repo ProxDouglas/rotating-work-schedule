@@ -4,9 +4,6 @@ namespace rotating_work_schedule.Models
 {
    public class Employee
    {
-      [Key] // PK
-      public int Id { get; set; }
-
       [Required]
       [StringLength(100)]
       public required string Name { get; set; }

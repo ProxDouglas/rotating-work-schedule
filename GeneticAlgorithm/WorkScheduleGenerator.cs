@@ -197,7 +197,7 @@ public class WorkScheduleGenerator
             bool startWork = false;
 
             WorkDay dayWork = configuration.WorkDays[day];
-            OperatingSchedule schedule = dayWork.OperatingSchedule;
+            OperatingSchedule schedule = configuration.GetOperatingScheduleByDay(dayWork.DayOperating);
 
             // Calculate the start and end columns for the current day
             int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
@@ -267,12 +267,12 @@ public class WorkScheduleGenerator
       for (int day = 0; day < workDaysCount; day++)
       {
          var dayWork = configuration.WorkDays[day];
-         var schedule = dayWork.OperatingSchedule;
+         var schedule = configuration.GetOperatingScheduleByDay(dayWork.DayOperating);
          int startColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.Start);
          int endColumn = configuration.GetColumnFromDateTime(dayWork.EffectiveDate, schedule.End);
 
          // Para cada coluna, conta os funcionários trabalhando por JobPosition
-         for (int column = startColumn; column < endColumn; column+= 2)
+         for (int column = startColumn; column < endColumn; column += 2)
          {
             var jobPositionCounts = new Dictionary<string, int>();
 

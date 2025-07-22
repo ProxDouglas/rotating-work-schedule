@@ -10,7 +10,5 @@ namespace rotating_work_schedule.Models
 
       [Required] // Campo obrigatório
       public DayOperating DayOperating { get; set; }
-
-      public required OperatingSchedule OperatingSchedule { get; set; } // FK
    }
 }
