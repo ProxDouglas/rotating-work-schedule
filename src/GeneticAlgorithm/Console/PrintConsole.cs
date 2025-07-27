@@ -14,15 +14,15 @@ public class PrintConsole
       return new TimeSpan(hour, minute, 0);
    }
 
-   public WorkDay? GetDateAndWorkDayFromColumn(int column, DateTime startDate, List<WorkDay> workDays)
+   public WorkDay? GetDateAndWorkDayFromColumn(int column, DateOnly startDate, List<WorkDay> workDays)
    {
       int totalMinutes = column * 30;
       int daysOffset = totalMinutes / (24 * 60);
-      DateTime currentDate = startDate.AddDays(daysOffset);
+      DateOnly currentDate = startDate.AddDays(daysOffset);
 
-      return workDays.FirstOrDefault(wd => wd.EffectiveDate.Date == currentDate.Date);
+      return workDays.FirstOrDefault(wd => wd.EffectiveDate == currentDate);
    }
-   public void printMatrixList(List<Chromosome> best, List<Employee> employees, DateTime startDate, List<WorkDay> workDays)
+   public void printMatrixList(List<Chromosome> best, List<Employee> employees, DateOnly startDate, List<WorkDay> workDays)
    {
       // List<Chromosome> best = Configuration.Population.OrderByDescending(c => FitnessFunction(c)).Take(1).ToList();
 
@@ -52,7 +52,7 @@ public class PrintConsole
       }
    }
 
-   public void printSchedule(int[,] matrix, List<Employee> employees, DateTime startDate, List<WorkDay> workDays)
+   public void printSchedule(int[,] matrix, List<Employee> employees, DateOnly startDate, List<WorkDay> workDays)
    {
       int workingHours;
       int rows = matrix.GetLength(0);

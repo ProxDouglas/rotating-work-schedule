@@ -253,7 +253,7 @@ public class WorkScheduleGenerator
          .ToDictionary(g => g.Key, g => g.ToList());
 
       // Pré-calcula os funcionários de folga por dia e JobPosition
-      var dayJobPositionOffCounts = new Dictionary<(DateTime, string), int>();
+      var dayJobPositionOffCounts = new Dictionary<(DateOnly, string), int>();
       foreach (var dayWork in configuration.WorkDays)
       {
          foreach (var jobPosition in jobPositions)

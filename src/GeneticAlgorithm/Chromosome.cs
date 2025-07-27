@@ -9,8 +9,6 @@ namespace rotating_work_schedule.GeneticAlgorithm
 
       public int[,] Gene { get; set; }
 
-      public Chromosome() { }
-
       public Chromosome(int rowsSize, int columnsSize)
       {
          Gene = new int[rowsSize, columnsSize];

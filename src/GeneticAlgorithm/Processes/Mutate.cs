@@ -16,7 +16,7 @@ public class Mutate
       WorkDay dayWork = configuration.WorkDays[day];
 
       // Verifica se o funcionário está indisponível neste dia
-      bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate.Date == dayWork.EffectiveDate.Date);
+      bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate == dayWork.EffectiveDate);
 
       // Aplica mutação com base na taxa de mutação e disponibilidade
       var MutationRate = configuration.MutationRate;

@@ -28,10 +28,10 @@ public class WorkScheduleGeneratorController() : ControllerBase
             estoquista
         };
 
-        Unavailability unavailability = new Unavailability { Start = new DateTime(2025, 3, 17, 0, 0, 0), End = new DateTime(2025, 3, 17, 0, 0, 0), EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), Validity = new DateTime(2025, 3, 17, 0, 0, 0) };
-        Unavailability unavailability2 = new Unavailability { Start = new DateTime(2025, 3, 18, 0, 0, 0), End = new DateTime(2025, 3, 18, 0, 0, 0), EffectiveDate = new DateTime(2025, 3, 18, 0, 0, 0), Validity = new DateTime(2025, 3, 18, 0, 0, 0) };
-        Unavailability unavailability3 = new Unavailability { Start = new DateTime(2025, 3, 19, 0, 0, 0), End = new DateTime(2025, 3, 19, 0, 0, 0), EffectiveDate = new DateTime(2025, 3, 19, 0, 0, 0), Validity = new DateTime(2025, 3, 19, 0, 0, 0) };
-        Unavailability unavailability4 = new Unavailability { Start = new DateTime(2025, 3, 20, 0, 0, 0), End = new DateTime(2025, 3, 23, 0, 0, 0), EffectiveDate = new DateTime(2025, 3, 20, 0, 0, 0), Validity = new DateTime(2025, 3, 20, 0, 0, 0) };
+        Unavailability unavailability = new Unavailability { Start = new DateTime(2025, 3, 17, 0, 0, 0), End = new DateTime(2025, 3, 17, 0, 0, 0) };
+        Unavailability unavailability2 = new Unavailability { Start = new DateTime(2025, 3, 18, 0, 0, 0), End = new DateTime(2025, 3, 18, 0, 0, 0) };
+        Unavailability unavailability3 = new Unavailability { Start = new DateTime(2025, 3, 19, 0, 0, 0), End = new DateTime(2025, 3, 19, 0, 0, 0) };
+        Unavailability unavailability4 = new Unavailability { Start = new DateTime(2025, 3, 20, 0, 0, 0), End = new DateTime(2025, 3, 23, 0, 0, 0) };
 
         List<Employee> employees = new List<Employee>
         {
@@ -88,36 +88,36 @@ public class WorkScheduleGeneratorController() : ControllerBase
 
         List<WorkDay> workDays = new List<WorkDay>
         {
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 17, 0, 0, 0), DayOperating = DayOperating.Sunday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 18, 0, 0, 0), DayOperating = DayOperating.Monday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 19, 0, 0, 0), DayOperating = DayOperating.Tuesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 20, 0, 0, 0), DayOperating = DayOperating.Saturday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 21, 0, 0, 0), DayOperating = DayOperating.Thursday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 22, 0, 0, 0), DayOperating = DayOperating.Friday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 23, 0, 0, 0), DayOperating = DayOperating.Wednesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 24, 0, 0, 0), DayOperating = DayOperating.Holiday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 25, 0, 0, 0), DayOperating = DayOperating.Sunday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 26, 0, 0, 0), DayOperating = DayOperating.Monday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 27, 0, 0, 0), DayOperating = DayOperating.Tuesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 28, 0, 0, 0), DayOperating = DayOperating.Saturday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 29, 0, 0, 0), DayOperating = DayOperating.Thursday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 30, 0, 0, 0), DayOperating = DayOperating.Friday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 3, 31, 0, 0, 0), DayOperating = DayOperating.Wednesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 1, 0, 0, 0), DayOperating = DayOperating.Holiday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 2, 0, 0, 0), DayOperating = DayOperating.Sunday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 3, 0, 0, 0), DayOperating = DayOperating.Monday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 4, 0, 0, 0), DayOperating = DayOperating.Tuesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 5, 0, 0, 0), DayOperating = DayOperating.Saturday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 6, 0, 0, 0), DayOperating = DayOperating.Thursday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 7, 0, 0, 0), DayOperating = DayOperating.Friday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 8, 0, 0, 0), DayOperating = DayOperating.Wednesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 9, 0, 0, 0), DayOperating = DayOperating.Holiday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 10, 0, 0, 0), DayOperating = DayOperating.Sunday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 11, 0, 0, 0), DayOperating = DayOperating.Monday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 12, 0, 0, 0), DayOperating = DayOperating.Tuesday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 13, 0, 0, 0), DayOperating = DayOperating.Saturday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 14, 0, 0, 0), DayOperating = DayOperating.Thursday},
-            new WorkDay { EffectiveDate = new DateTime(2025, 4, 15, 0, 0, 0), DayOperating = DayOperating.Friday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 17), DayOperating = DayOperating.Sunday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 18), DayOperating = DayOperating.Monday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 19), DayOperating = DayOperating.Tuesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 20), DayOperating = DayOperating.Saturday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 21), DayOperating = DayOperating.Thursday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 22), DayOperating = DayOperating.Friday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 23), DayOperating = DayOperating.Wednesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 24), DayOperating = DayOperating.Holiday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 25), DayOperating = DayOperating.Sunday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 26), DayOperating = DayOperating.Monday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 27), DayOperating = DayOperating.Tuesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 28), DayOperating = DayOperating.Saturday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 29), DayOperating = DayOperating.Thursday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 30), DayOperating = DayOperating.Friday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 3, 31), DayOperating = DayOperating.Wednesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 1), DayOperating = DayOperating.Holiday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 2), DayOperating = DayOperating.Sunday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 3), DayOperating = DayOperating.Monday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 4), DayOperating = DayOperating.Tuesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 5), DayOperating = DayOperating.Saturday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 6), DayOperating = DayOperating.Thursday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 7), DayOperating = DayOperating.Friday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 8), DayOperating = DayOperating.Wednesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 9), DayOperating = DayOperating.Holiday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 10), DayOperating = DayOperating.Sunday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 11), DayOperating = DayOperating.Monday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 12), DayOperating = DayOperating.Tuesday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 13), DayOperating = DayOperating.Saturday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 14), DayOperating = DayOperating.Thursday},
+            new WorkDay { EffectiveDate = new DateOnly(2025, 4, 15), DayOperating = DayOperating.Friday},
         };
 
         var generateDayOff = new GenerateDayOff();

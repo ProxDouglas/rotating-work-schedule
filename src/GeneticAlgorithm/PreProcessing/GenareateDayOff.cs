@@ -66,7 +66,7 @@ public class GenerateDayOff
             {
                foreach (var day in workDays)
                {
-                  if (day.EffectiveDate.Date >= unavailability.Start.Date && day.EffectiveDate.Date <= unavailability.End.Date)
+                  if (day.EffectiveDate >= DateOnly.FromDateTime(unavailability.Start.Date) && day.EffectiveDate <= DateOnly.FromDateTime(unavailability.End.Date))
                   {
                      if (!daysOff.Contains(day))
                         daysOff.Add(day);
@@ -114,7 +114,7 @@ public class GenerateDayOff
          bool isDayOff = employeeDaysOff[employee].Contains(day);
          bool isUnavailable = employee.Unavailabilities != null &&
             employee.Unavailabilities.Any(u =>
-               day.EffectiveDate.Date >= u.Start.Date && day.EffectiveDate.Date <= u.End.Date);
+               day.EffectiveDate >= DateOnly.FromDateTime(u.Start.Date) && day.EffectiveDate <= DateOnly.FromDateTime(u.End.Date));
 
          if (isDayOff || isUnavailable)
             break;

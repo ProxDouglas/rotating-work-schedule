@@ -13,7 +13,5 @@ namespace rotating_work_schedule.Models
 
       [Required]
       public int MaximumConsecutiveDays { get; set; }
-      
-      public ICollection<Employee>? Employees { get; set; }
    }
 }

@@ -32,7 +32,7 @@ public class GeneratePopulation
             WorkDay dayWork = configuration.WorkDays[day];
 
             // Verifica se o funcionário está indisponível neste dia
-            bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate.Date == dayWork.EffectiveDate.Date);
+            bool isUnavailable = employee.WorkOffs.Any(wd => wd.EffectiveDate == dayWork.EffectiveDate);
 
             if (!isUnavailable)
                this.FillDay(dayWork, chromosome, configuration, row, totalSlots);

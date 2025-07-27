@@ -14,7 +14,7 @@ public class ConfigurationSchedule
    public int RowsSize { get; private set; }
 
    public int GenarationValue { get; set; } = 0;
-   public DateTime StartDate { get; }
+   public DateOnly StartDate { get; }
    public List<Chromosome> Population { get; set; } = new List<Chromosome>();
    public List<Employee> Employees { get; }
    public List<JobPosition> JobPositions { get; }
@@ -40,9 +40,9 @@ public class ConfigurationSchedule
          Generations = generations;
    }
 
-   public int GetColumnFromDateTime(DateTime date, TimeSpan time)
+   public int GetColumnFromDateTime(DateOnly date, TimeSpan time)
    {
-      int daysOffset = (date.Date - this.StartDate.Date).Days;
+      int daysOffset = date.DayNumber - this.StartDate.DayNumber;
       int totalMinutes = (daysOffset * 24 * 60) + (time.Hours * 60) + time.Minutes;
       return totalMinutes / 30;
    }
@@ -51,9 +51,9 @@ public class ConfigurationSchedule
    {
       int totalMinutes = column * 30;
       int daysOffset = totalMinutes / (24 * 60);
-      DateTime currentDate = this.StartDate.AddDays(daysOffset);
+      DateOnly currentDate = this.StartDate.AddDays(daysOffset);
 
-      return this.WorkDays.FirstOrDefault(wd => wd.EffectiveDate.Date == currentDate.Date);
+      return this.WorkDays.FirstOrDefault(wd => wd.EffectiveDate == currentDate);
    }
 
    public OperatingSchedule GetOperatingScheduleByDay(DayOperating dayOperating)
