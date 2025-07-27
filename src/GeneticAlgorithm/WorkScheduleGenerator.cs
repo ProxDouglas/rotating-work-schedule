@@ -1,7 +1,7 @@
-namespace rotating_work_schedule.GeneticAlgorithm;
+namespace WorkSchedule.GeneticAlgorithm;
 
-using rotating_work_schedule.GeneticAlgorithm.Processes;
-using rotating_work_schedule.Models;
+using WorkSchedule.GeneticAlgorithm.Processes;
+using WorkSchedule.Entities;
 
 public class WorkScheduleGenerator
 {

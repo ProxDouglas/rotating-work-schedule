@@ -1,6 +1,6 @@
-using rotating_work_schedule.Models;
+using WorkSchedule.Entities;
 
-namespace rotating_work_schedule.GeneticAlgorithm.PrePocessing;
+namespace WorkSchedule.GeneticAlgorithm.PrePocessing;
 
 public class GenerateDayOff
 {

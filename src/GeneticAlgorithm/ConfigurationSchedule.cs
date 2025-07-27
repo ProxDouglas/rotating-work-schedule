@@ -1,6 +1,6 @@
-namespace rotating_work_schedule.GeneticAlgorithm;
+namespace WorkSchedule.GeneticAlgorithm;
 
-using rotating_work_schedule.Models;
+using WorkSchedule.Entities;
 using RotatingWorkSchedule.Enums;
 
 public class ConfigurationSchedule

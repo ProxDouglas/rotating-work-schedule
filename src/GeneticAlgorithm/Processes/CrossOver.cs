@@ -1,6 +1,6 @@
-namespace rotating_work_schedule.GeneticAlgorithm.Processes;
+namespace WorkSchedule.GeneticAlgorithm.Processes;
 
-using rotating_work_schedule.Models;
+using WorkSchedule.Entities;
 public class CrossOver
 {
    public Chromosome Run(ConfigurationSchedule configuration, Chromosome parent1, Chromosome parent2)

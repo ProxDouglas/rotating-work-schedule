@@ -1,18 +1,41 @@
-namespace rotating_work_schedule.Controllers;
+namespace WorkSchedule.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using rotating_work_schedule.Models;
-using rotating_work_schedule.GeneticAlgorithm;
+using WorkSchedule.Entities;
+using WorkSchedule.GeneticAlgorithm;
 using RotatingWorkSchedule.Enums;
-using rotating_work_schedule.GeneticAlgorithm.PrePocessing;
+using WorkSchedule.GeneticAlgorithm.PrePocessing;
+using WorkSchedule.QueueRabbitMQ;
 
 [ApiController]
 [Route("api/workschedule")]
-public class WorkScheduleGeneratorController() : ControllerBase
+public class WorkScheduleGeneratorTesteController : ControllerBase
 {
+    private readonly IQueuePubSub QueuePubSub;
+
+    public WorkScheduleGeneratorTesteController(IQueuePubSub queuePubSub)
+    {
+        QueuePubSub = queuePubSub;
+    }
+
+    [HttpGet]
+    public async void ConsumeOrder()
+    {
+        while (true)
+        {
+            var order = await QueuePubSub.ConsumeMessage<WorkScheduleRequest>("GenerationRequest");
+            if (order != null)
+            {
+                // Process the order
+                Console.WriteLine($"Received order with Id: {order.Id}");
+                // Here you can call your work schedule generation logic
+            }
+            await Task.Delay(1000); // Optional: avoid tight loop, adjust as needed
+        }
+    }
 
     [HttpPost]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> Teste()
     {
 
         JobPosition caixa = new JobPosition { Name = "Caixa", Workload = 8, MaximumConsecutiveDays = 6 };

@@ -1,6 +1,6 @@
-namespace rotating_work_schedule.GeneticAlgorithm.Processes;
+namespace WorkSchedule.GeneticAlgorithm.Processes;
 
-using rotating_work_schedule.Models;
+using WorkSchedule.Entities;
 public class GeneratePopulation
 {
    public async Task<List<Chromosome>> Run(ConfigurationSchedule configuration, int size = 0)
