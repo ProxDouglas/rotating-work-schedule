@@ -6,7 +6,7 @@ namespace WorkSchedule.Mappers;
 
 class ChromosomeMapper
 {
-   public WorkScheduleGenerated toWorkScheduleGenerated(Chromosome chromosome, List<Employee> employees, DateOnly startDate)
+   public WorkScheduleGenerated toWorkScheduleGenerated(Chromosome chromosome, WorkScheduleRequest order, DateOnly startDate)
    {
       int[,] matrix = chromosome.Gene;
       var employeeSchedules = new List<EmployeeSchedule>();
@@ -56,7 +56,7 @@ class ChromosomeMapper
 
          employeeSchedules.Add(new EmployeeSchedule
          {
-            Name = employees[i].Name,
+            Name = order.Employees[i].Name,
             WorkDays = workDaySchedules
          });
       }

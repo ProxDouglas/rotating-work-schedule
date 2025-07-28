@@ -73,7 +73,7 @@ public class WorkScheduleBackgroundService : BackgroundService
          var workScheduleGenerator = new WorkScheduleGenerator(configuration);
          var bestSchedule = await workScheduleGenerator.RunGeneticAlgorithmAsync();
 
-         WorkScheduleGenerated workScheduleGenerated = _chromosomeMapper.toWorkScheduleGenerated(bestSchedule, order.Employees, configuration.StartDate);
+         WorkScheduleGenerated workScheduleGenerated = _chromosomeMapper.toWorkScheduleGenerated(bestSchedule, order, configuration.StartDate);
 
          return workScheduleGenerated;
       }
